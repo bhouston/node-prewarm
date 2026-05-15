@@ -1,0 +1,55 @@
+{
+  "name": "node-prewarm",
+  "version": "0.1.0",
+  "description": "Pre-warm Node's stable module compile cache by starting a server, waiting for a port, then shutting down",
+  "keywords": [
+    "compile-cache",
+    "docker",
+    "node",
+    "prewarm"
+  ],
+  "license": "MIT",
+  "author": "",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "bin": {
+    "node-prewarm": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "types": "./dist/prewarm.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/prewarm.d.ts",
+      "default": "./dist/prewarm.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "pnpm run build",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
+    "test": "vitest run",
+    "make-release": "node scripts/make-release.mjs ."
+  },
+  "devDependencies": {
+    "@types/node": "^25.8.0",
+    "express": "^5.1.0",
+    "oxfmt": "^0.41.0",
+    "oxlint": "^1.56.0",
+    "tsx": "^4.22.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.5"
+  },
+  "engines": {
+    "node": ">=25"
+  },
+  "packageManager": "pnpm@11.0.8"
+}
