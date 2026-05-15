@@ -63,7 +63,7 @@ MIT
 [npm-url]: https://www.npmjs.com/package/node-prewarm
 [npm-downloads]: https://img.shields.io/npm/dw/node-prewarm
 [npmtrends-url]: https://www.npmtrends.com/node-prewarm
-[tests-badge]: https://github.com/ben3d/node-prewarm/actions/workflows/coverage.yml/badge.svg
-[tests-url]: https://github.com/ben3d/node-prewarm/actions/workflows/coverage.yml
-[coverage-badge]: https://codecov.io/gh/ben3d/node-prewarm/branch/main/graph/badge.svg
-[coverage-url]: https://codecov.io/gh/ben3d/node-prewarm
+[tests-badge]: https://github.com/bhouston/node-prewarm/actions/workflows/coverage.yml/badge.svg
+[tests-url]: https://github.com/bhouston/node-prewarm/actions/workflows/coverage.yml
+[coverage-badge]: https://codecov.io/gh/bhouston/node-prewarm/branch/main/graph/badge.svg
+[coverage-url]: https://codecov.io/gh/bhouston/node-prewarm
