@@ -131,6 +131,7 @@ describe("cli", () => {
         host: "127.0.0.1",
         listenTimeout: 10,
         shutdownTimeout: 5,
+        dryRun: false,
         clearCache: false,
         verifyCache: false,
         skipVersionCheck: false,
@@ -154,6 +155,7 @@ describe("cli", () => {
       host: "127.0.0.1",
       listenTimeout: 10,
       shutdownTimeout: 5,
+      dryRun: false,
       clearCache: false,
       verifyCache: false,
       skipVersionCheck: false,
@@ -184,5 +186,23 @@ describe("cli", () => {
       expect(result.stdout).toContain(`Waiting for response on 127.0.0.1:${port}`);
       expect(result.stdout).toContain(`Response detected on 127.0.0.1:${port}`);
     });
+  });
+
+  it("supports --dry-run without NODE_COMPILE_CACHE", async () => {
+    const port = await getFreePort();
+    const command = `${JSON.stringify(process.execPath)} ${JSON.stringify(tsxCli)} ${JSON.stringify(miniServerFixture)}`;
+    const result = await cli.run(
+      [command, "--port", String(port), "--host", "127.0.0.1", "--dry-run"],
+      {
+        timeout: 10_000,
+        subprocessCleanup: "process-tree",
+        env: { ...process.env, NODE_COMPILE_CACHE: "" },
+      },
+    );
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain(`Waiting for response on 127.0.0.1:${port}`);
+    expect(result.stdout).toContain(`Response detected on 127.0.0.1:${port}`);
+    expect(result.stdout).not.toContain("NODE_COMPILE_CACHE:");
   });
 });

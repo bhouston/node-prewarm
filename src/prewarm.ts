@@ -11,6 +11,7 @@ export interface PrewarmCliOptions {
   host: string;
   listenTimeout: number;
   shutdownTimeout: number;
+  dryRun: boolean;
   clearCache: boolean;
   verifyCache: boolean;
   skipVersionCheck: boolean;
@@ -35,6 +36,7 @@ interface RawCliArguments {
   host: string;
   "listen-timeout": number;
   "shutdown-timeout": number;
+  "dry-run": boolean;
   "clear-cache": boolean;
   "verify-cache": boolean;
   "skip-version-check": boolean;
@@ -84,6 +86,11 @@ export function parseArgv(argv: string[]): { command: string; options: PrewarmCl
           type: "number",
           default: 5,
           describe: "Seconds to wait after SIGTERM before forcing SIGKILL",
+        })
+        .option("dry-run", {
+          type: "boolean",
+          default: false,
+          describe: "Measure time until the port is ready without requiring NODE_COMPILE_CACHE",
         })
         .option("clear-cache", {
           type: "boolean",
@@ -140,6 +147,7 @@ export function parseArgv(argv: string[]): { command: string; options: PrewarmCl
     host: parsed.host,
     listenTimeout,
     shutdownTimeout,
+    dryRun: parsed["dry-run"],
     clearCache: parsed["clear-cache"],
     verifyCache: parsed["verify-cache"],
     skipVersionCheck: parsed["skip-version-check"],
@@ -245,13 +253,14 @@ function pickStdio(option: StdioChoice | undefined): StdioChoice {
 export async function prewarm(options: PrewarmOptions): Promise<PrewarmResult> {
   const listenTimeoutSec = options.listenTimeout;
   const shutdownTimeoutSec = options.shutdownTimeout;
+  const dryRun = options.dryRun;
 
   const baseEnv: NodeJS.ProcessEnv =
     typeof options.env === "object" && options.env !== null
       ? { ...process.env, ...options.env }
       : { ...process.env };
 
-  if (!options.skipVersionCheck) {
+  if (!dryRun && !options.skipVersionCheck) {
     const okVersion = checkNodeVersion();
     if (!okVersion) {
       return { exitCode: 1 };
@@ -259,7 +268,7 @@ export async function prewarm(options: PrewarmOptions): Promise<PrewarmResult> {
   }
 
   const cacheDir = baseEnv.NODE_COMPILE_CACHE;
-  if (!cacheDir) {
+  if (!dryRun && !cacheDir) {
     console.error("Error: NODE_COMPILE_CACHE environment variable is required.");
     return { exitCode: 1 };
   }
@@ -284,13 +293,15 @@ export async function prewarm(options: PrewarmOptions): Promise<PrewarmResult> {
   const listenTimeoutMs = listenTimeoutSec * 1000;
   const shutdownTimeoutMs = shutdownTimeoutSec * 1000;
 
-  console.log(`NODE_COMPILE_CACHE: ${cacheDir}`);
-  if (options.clearCache && fs.existsSync(cacheDir)) {
+  if (!dryRun) {
+    console.log(`NODE_COMPILE_CACHE: ${cacheDir}`);
+  }
+  if (!dryRun && options.clearCache && cacheDir && fs.existsSync(cacheDir)) {
     console.log("Clearing compile cache directory...");
     await removeDirectory(cacheDir);
   }
 
-  const initialCacheSize = getDirectorySize(cacheDir);
+  const initialCacheSize = dryRun || !cacheDir ? 0 : getDirectorySize(cacheDir);
 
   console.log(`Starting: "${options.command}"`);
   console.log(
@@ -339,11 +350,13 @@ export async function prewarm(options: PrewarmOptions): Promise<PrewarmResult> {
       );
 
       if (options.ignoreCrash) {
-        const finalCacheSize = getDirectorySize(cacheDir);
-        const deltaCacheSize = finalCacheSize - initialCacheSize;
-        console.log(
-          `NODE_COMPILE_CACHE size: ${formatBytes(finalCacheSize)} (${formatBytes(deltaCacheSize)} delta)`,
-        );
+        if (!dryRun && cacheDir) {
+          const finalCacheSize = getDirectorySize(cacheDir);
+          const deltaCacheSize = finalCacheSize - initialCacheSize;
+          console.log(
+            `NODE_COMPILE_CACHE size: ${formatBytes(finalCacheSize)} (${formatBytes(deltaCacheSize)} delta)`,
+          );
+        }
         return { exitCode: 0 };
       }
 
@@ -395,15 +408,17 @@ export async function prewarm(options: PrewarmOptions): Promise<PrewarmResult> {
 
     await delay(500);
 
-    const finalCacheSize = getDirectorySize(cacheDir);
-    const deltaCacheSize = finalCacheSize - initialCacheSize;
-    console.log(
-      `NODE_COMPILE_CACHE size: ${formatBytes(finalCacheSize)} (${formatBytes(deltaCacheSize)} delta)`,
-    );
+    if (!dryRun && cacheDir) {
+      const finalCacheSize = getDirectorySize(cacheDir);
+      const deltaCacheSize = finalCacheSize - initialCacheSize;
+      console.log(
+        `NODE_COMPILE_CACHE size: ${formatBytes(finalCacheSize)} (${formatBytes(deltaCacheSize)} delta)`,
+      );
 
-    if (options.verifyCache && finalCacheSize === 0) {
-      console.error("Error: Cache directory is empty after pre-warm.");
-      return { exitCode: 1 };
+      if (options.verifyCache && finalCacheSize === 0) {
+        console.error("Error: Cache directory is empty after pre-warm.");
+        return { exitCode: 1 };
+      }
     }
 
     return { exitCode: 0 };

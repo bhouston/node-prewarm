@@ -58,6 +58,7 @@ async function runPrewarm(
       host: overrides.host ?? "127.0.0.1",
       listenTimeout: overrides.listenTimeout ?? 0.25,
       shutdownTimeout: overrides.shutdownTimeout ?? 0.25,
+      dryRun: overrides.dryRun ?? false,
       clearCache: overrides.clearCache ?? false,
       verifyCache: overrides.verifyCache ?? false,
       skipVersionCheck: overrides.skipVersionCheck ?? true,
@@ -96,6 +97,7 @@ describe("prewarm", () => {
         "61",
         "--shutdown-timeout",
         "7.5",
+        "--dry-run",
         "--clear-cache",
         "--verify-cache",
         "--skip-version-check",
@@ -109,6 +111,7 @@ describe("prewarm", () => {
         host: "0.0.0.0",
         listenTimeout: 61,
         shutdownTimeout: 7.5,
+        dryRun: true,
         clearCache: true,
         verifyCache: true,
         skipVersionCheck: true,
@@ -148,6 +151,7 @@ describe("prewarm", () => {
         host: "127.0.0.1",
         listenTimeout: 61,
         shutdownTimeout: 5,
+        dryRun: false,
         stdio: "ignore",
         verifyCache: false,
         skipVersionCheck: false,
@@ -172,6 +176,7 @@ describe("prewarm", () => {
       host: "127.0.0.1",
       listenTimeout: 0.25,
       shutdownTimeout: 0.25,
+      dryRun: false,
       skipVersionCheck: true,
       clearCache: false,
       verifyCache: false,
@@ -184,6 +189,31 @@ describe("prewarm", () => {
     expect(console.error).toHaveBeenCalledWith(
       "Error: NODE_COMPILE_CACHE environment variable is required.",
     );
+  });
+
+  it("allows dry-run mode without NODE_COMPILE_CACHE", async () => {
+    const port = await getFreePort();
+    const { exitCode } = await prewarm({
+      command: tsxCommand(miniServerFixture),
+      port,
+      host: "127.0.0.1",
+      listenTimeout: 0.5,
+      shutdownTimeout: 0.5,
+      dryRun: true,
+      skipVersionCheck: false,
+      clearCache: false,
+      verifyCache: false,
+      ignoreShutdownTimeout: false,
+      ignoreCrash: false,
+      stdio: "ignore",
+      env: { ...process.env, NODE_COMPILE_CACHE: undefined },
+    });
+
+    expect(exitCode).toBe(0);
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining(`Response detected on 127.0.0.1:${port}`),
+    );
+    expect(console.log).not.toHaveBeenCalledWith(expect.stringContaining("NODE_COMPILE_CACHE:"));
   });
 
   it("fails the version check on Node versions below 25", async () => {
@@ -233,6 +263,7 @@ describe("prewarm", () => {
         host: "127.0.0.1",
         listenTimeout: 0.5,
         shutdownTimeout: 0.5,
+        dryRun: false,
         skipVersionCheck: true,
         clearCache: false,
         verifyCache: false,
@@ -259,6 +290,7 @@ describe("prewarm", () => {
         host: "127.0.0.1",
         listenTimeout: 0.25,
         shutdownTimeout: 0.25,
+        dryRun: false,
         skipVersionCheck: true,
         clearCache: false,
         verifyCache: false,
@@ -288,6 +320,7 @@ describe("prewarm", () => {
         host: "127.0.0.1",
         listenTimeout: 0.5,
         shutdownTimeout: 0.5,
+        dryRun: false,
         skipVersionCheck: true,
         clearCache: true,
         verifyCache: false,
@@ -349,6 +382,7 @@ describe("prewarm", () => {
         host: "127.0.0.1",
         listenTimeout: 0.25,
         shutdownTimeout: 0.25,
+        dryRun: false,
         skipVersionCheck: true,
         clearCache: false,
         verifyCache: false,
@@ -444,6 +478,7 @@ describe("prewarm", () => {
         host: "127.0.0.1",
         listenTimeout: 0.5,
         shutdownTimeout: 0.5,
+        dryRun: false,
         skipVersionCheck: true,
         clearCache: false,
         verifyCache: true,
@@ -477,6 +512,7 @@ describe("prewarm", () => {
         host: "127.0.0.1",
         listenTimeout: 0.5,
         shutdownTimeout: 0.5,
+        dryRun: false,
         skipVersionCheck: true,
         clearCache: false,
         verifyCache: false,

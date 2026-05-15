@@ -27,6 +27,14 @@ node-prewarm "node .output/server/index.mjs" --port 8080 --ignore-crash
 
 Environment variable **`NODE_COMPILE_CACHE`** must be set. If **`PORT`** is set (e.g. in Docker `ENV`), it overrides `--port`.
 
+If you only want to measure startup time until the server listens, use `--dry-run`:
+
+```bash
+node-prewarm "node .output/server/index.mjs" --port 8080 --dry-run
+```
+
+In `--dry-run` mode, `NODE_COMPILE_CACHE` is not required and no cache size information is reported.
+
 ## Programmatic usage
 
 ```js

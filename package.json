@@ -1,6 +1,6 @@
 {
   "name": "node-prewarm",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Pre-warm Node's stable module compile cache by starting a server, waiting for a port, then shutting down",
   "keywords": [
     "compile-cache",
