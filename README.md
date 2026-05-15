@@ -1,5 +1,10 @@
 # node-prewarm
 
+[![NPM Package][npm]][npm-url]
+[![NPM Downloads][npm-downloads]][npmtrends-url]
+[![Tests][tests-badge]][tests-url]
+[![Coverage][coverage-badge]][coverage-url]
+
 Start a Node process (typically your HTTP server entrypoint), wait until a TCP port accepts connections, then send **SIGTERM** so the process exits gracefully. Intended for Docker builds alongside [`NODE_COMPILE_CACHE`](https://nodejs.org/api/environment_variables.html) (Node.js 25+) to preload the stable module compile cache before deployment.
 
 Requires **Node.js 25 or later**.
@@ -53,3 +58,12 @@ pnpm test
 ## License
 
 MIT
+
+[npm]: https://img.shields.io/npm/v/node-prewarm
+[npm-url]: https://www.npmjs.com/package/node-prewarm
+[npm-downloads]: https://img.shields.io/npm/dw/node-prewarm
+[npmtrends-url]: https://www.npmtrends.com/node-prewarm
+[tests-badge]: https://github.com/ben3d/node-prewarm/actions/workflows/coverage.yml/badge.svg
+[tests-url]: https://github.com/ben3d/node-prewarm/actions/workflows/coverage.yml
+[coverage-badge]: https://codecov.io/gh/ben3d/node-prewarm/branch/main/graph/badge.svg
+[coverage-url]: https://codecov.io/gh/ben3d/node-prewarm
