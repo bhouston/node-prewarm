@@ -1,6 +1,6 @@
 {
   "name": "node-prewarm",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Pre-warm Node's stable module compile cache by starting a server, waiting for a port, then shutting down",
   "keywords": [
     "compile-cache",
@@ -9,10 +9,10 @@
     "prewarm"
   ],
   "license": "MIT",
-  "author": "",
+  "author": "Ben Houston (ben@ben3d.ca)",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/ben3d/node-prewarm"
   },
   "bin": {
     "node-prewarm": "./dist/cli.js"
@@ -41,6 +41,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.8.0",
+    "@vitest/coverage-v8": "^4.1.6",
     "express": "^5.1.0",
     "oxfmt": "^0.41.0",
     "oxlint": "^1.56.0",
