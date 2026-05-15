@@ -2,6 +2,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 import fs from "node:fs";
 import net from "node:net";
 import path from "node:path";
+import yargs, { type Argv } from "yargs";
 
 export type StdioChoice = "inherit" | "ignore" | "pipe";
 
@@ -28,16 +29,17 @@ export interface PrewarmResult {
   exitCode: number;
 }
 
-interface MutableCliOptions {
-  port: number | undefined;
+interface RawCliArguments {
+  command: string;
+  port: number;
   host: string;
-  listenTimeout: number;
-  shutdownTimeout: number;
-  clearCache: boolean;
-  verifyCache: boolean;
-  skipVersionCheck: boolean;
-  ignoreShutdownTimeout: boolean;
-  ignoreCrash: boolean;
+  "listen-timeout": number;
+  "shutdown-timeout": number;
+  "clear-cache": boolean;
+  "verify-cache": boolean;
+  "skip-version-check": boolean;
+  "ignore-shutdown-timeout": boolean;
+  "ignore-crash": boolean;
 }
 
 /** CLI parser; throws on invalid invocation. */
@@ -46,89 +48,103 @@ export function parseArgv(argv: string[]): { command: string; options: PrewarmCl
     throw new Error("Usage: node-prewarm <command> --port <port> [options]");
   }
 
-  const command = argv[0];
-  const options: MutableCliOptions = {
-    port: undefined,
-    host: "127.0.0.1",
-    listenTimeout: 10,
-    shutdownTimeout: 5,
-    clearCache: false,
-    verifyCache: false,
-    skipVersionCheck: false,
-    ignoreShutdownTimeout: false,
-    ignoreCrash: false,
-  };
+  const parsed = yargs(argv)
+    .scriptName("node-prewarm")
+    .usage("Usage: $0 <command> --port <port> [options]")
+    .exitProcess(false)
+    .help(false)
+    .version(false)
+    .strict()
+    .parserConfiguration({
+      "camel-case-expansion": false,
+      "short-option-groups": false,
+    })
+    .command("$0 <command>", "Start a process, wait for a port, then shut it down", (cli: Argv) =>
+      cli
+        .positional("command", {
+          type: "string",
+          describe: "Shell command to start and prewarm",
+        })
+        .option("port", {
+          type: "number",
+          demandOption: true,
+          describe: "TCP port to wait for",
+        })
+        .option("host", {
+          type: "string",
+          default: "127.0.0.1",
+          describe: "Host to probe while waiting for readiness",
+        })
+        .option("listen-timeout", {
+          type: "number",
+          default: 10,
+          describe: "Seconds to wait for the port to accept connections",
+        })
+        .option("shutdown-timeout", {
+          type: "number",
+          default: 5,
+          describe: "Seconds to wait after SIGTERM before forcing SIGKILL",
+        })
+        .option("clear-cache", {
+          type: "boolean",
+          default: false,
+          describe: "Remove the compile cache directory before prewarming",
+        })
+        .option("verify-cache", {
+          type: "boolean",
+          default: false,
+          describe: "Fail if the compile cache directory is still empty afterward",
+        })
+        .option("skip-version-check", {
+          type: "boolean",
+          default: false,
+          describe: "Skip the Node.js 25+ check",
+        })
+        .option("ignore-shutdown-timeout", {
+          type: "boolean",
+          default: false,
+          describe: "Treat forced shutdown after timeout as success",
+        })
+        .option("ignore-crash", {
+          type: "boolean",
+          default: false,
+          describe: "Treat an early process exit as success",
+        })
+        .check((options: Pick<RawCliArguments, "port" | "listen-timeout" | "shutdown-timeout">) => {
+          if (!Number.isFinite(options.port)) {
+            throw new Error("The --port option is required.");
+          }
+          if (!Number.isFinite(options["listen-timeout"]) || options["listen-timeout"] <= 0) {
+            throw new Error("The --listen-timeout option must be a positive number.");
+          }
+          if (!Number.isFinite(options["shutdown-timeout"]) || options["shutdown-timeout"] <= 0) {
+            throw new Error("The --shutdown-timeout option must be a positive number.");
+          }
+          return true;
+        }),
+    )
+    .fail((message: string | undefined, error: Error | undefined) => {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error(message ?? "Invalid command line arguments.");
+    })
+    .parseSync() as unknown as RawCliArguments;
 
-  for (let index = 1; index < argv.length; index += 1) {
-    const arg = argv[index];
-
-    if (!arg.startsWith("--")) {
-      throw new Error(`Unexpected argument: ${arg}`);
-    }
-
-    const name = arg.slice(2);
-
-    switch (name) {
-      case "port":
-        index += 1;
-        options.port = Number.parseInt(argv[index] ?? "", 10);
-        break;
-      case "host":
-        index += 1;
-        options.host = argv[index] ?? "";
-        break;
-      case "listen-timeout":
-        index += 1;
-        options.listenTimeout = Number.parseFloat(argv[index] ?? "");
-        break;
-      case "shutdown-timeout":
-        index += 1;
-        options.shutdownTimeout = Number.parseFloat(argv[index] ?? "");
-        break;
-      case "clear-cache":
-        options.clearCache = true;
-        break;
-      case "verify-cache":
-        options.verifyCache = true;
-        break;
-      case "skip-version-check":
-        options.skipVersionCheck = true;
-        break;
-      case "ignore-shutdown-timeout":
-        options.ignoreShutdownTimeout = true;
-        break;
-      case "ignore-crash":
-        options.ignoreCrash = true;
-        break;
-      default:
-        throw new Error(`Unknown option: --${name}`);
-    }
-  }
-
-  if (options.port === undefined || !Number.isFinite(options.port)) {
-    throw new Error("The --port option is required.");
-  }
-
-  if (!Number.isFinite(options.listenTimeout) || options.listenTimeout <= 0) {
-    throw new Error("The --listen-timeout option must be a positive number.");
-  }
-
-  if (!Number.isFinite(options.shutdownTimeout) || options.shutdownTimeout <= 0) {
-    throw new Error("The --shutdown-timeout option must be a positive number.");
-  }
-
-  const port = options.port;
-  const { listenTimeout, shutdownTimeout } = options;
+  const command = parsed.command;
+  const port = parsed.port;
+  const listenTimeout = parsed["listen-timeout"];
+  const shutdownTimeout = parsed["shutdown-timeout"];
   const cli: PrewarmCliOptions = {
     port,
-    host: options.host,
+    host: parsed.host,
     listenTimeout,
     shutdownTimeout,
-    clearCache: options.clearCache,
-    verifyCache: options.verifyCache,
-    skipVersionCheck: options.skipVersionCheck,
-    ignoreShutdownTimeout: options.ignoreShutdownTimeout,
-    ignoreCrash: options.ignoreCrash,
+    clearCache: parsed["clear-cache"],
+    verifyCache: parsed["verify-cache"],
+    skipVersionCheck: parsed["skip-version-check"],
+    ignoreShutdownTimeout: parsed["ignore-shutdown-timeout"],
+    ignoreCrash: parsed["ignore-crash"],
   };
 
   return { command, options: cli };
