@@ -310,7 +310,10 @@ export async function prewarm(options: PrewarmOptions): Promise<PrewarmResult> {
 
   const stdioOption = pickStdio(options.stdio);
   const startTime = Date.now();
-  const child: ChildProcess = spawn(options.command, {
+  // On POSIX, replace the wrapper shell with the target command so signals and
+  // exit timing reflect the actual server process rather than `/bin/sh`.
+  const spawnedCommand = process.platform === "win32" ? options.command : `exec ${options.command}`;
+  const child: ChildProcess = spawn(spawnedCommand, {
     shell: true,
     stdio: stdioOption,
     cwd: options.cwd,
