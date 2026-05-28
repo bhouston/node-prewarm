@@ -183,6 +183,7 @@ describe("prewarm", () => {
       ignoreShutdownTimeout: false,
       ignoreCrash: false,
       stdio: "ignore",
+      env: { ...process.env, NODE_COMPILE_CACHE: undefined },
     });
 
     expect(exitCode).toBe(1);
