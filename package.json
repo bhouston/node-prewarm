@@ -30,6 +30,7 @@
     "./package.json": "./package.json"
   },
   "scripts": {
+    "prepare": "husky",
     "build": "tsc",
     "prepublishOnly": "pnpm run build",
     "format": "oxfmt .",
@@ -47,12 +48,21 @@
     "@types/yargs": "^17.0.35",
     "@vitest/coverage-v8": "^4.1.10",
     "express": "^5.1.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.3.0",
     "oxfmt": "^0.58.0",
     "oxlint": "^1.73.0",
     "tsx": "^4.22.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.10",
     "vitest-command-line": "^0.9.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,mjs,cjs}": [
+      "oxfmt",
+      "oxlint --fix"
+    ],
+    "*.{json,jsonc,md,mdx,css,html,yml,yaml}": "oxfmt"
   },
   "engines": {
     "node": ">=25"
