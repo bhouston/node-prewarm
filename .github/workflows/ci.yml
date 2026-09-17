@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [dev, main]
+    branches: [main]
   pull_request:
-    branches: [dev, main]
+    branches: [main]
     types: [opened, synchronize, reopened, edited]
   workflow_call:
 
@@ -63,7 +63,6 @@ jobs:
       - name: Validate PR branch, issue link, and title
         run: node scripts/check-pr.mjs
       - name: Lint feature commits
-        if: github.base_ref == 'dev'
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}

@@ -6,6 +6,6 @@ Describe the problem and resulting behavior.
 
 List checks run and any remaining limitations.
 
-- [ ] Targets `dev` (release PRs alone target `main` from `dev`).
+- [ ] Targets `main`.
 - [ ] PR title and commits use Conventional Commits.
 - [ ] `pnpm check` passes.
