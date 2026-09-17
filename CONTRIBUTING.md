@@ -24,9 +24,8 @@ Read it before changing code. AGENTS.md and CLAUDE.md point here intentionally.
 6. When ready to release, open a PR from this repository's `dev` to `main`, titled
    `chore: release dev`. Use **Create a merge commit** for this PR, preserving all
    feature commits. Never squash or rebase the release PR. CI rejects other source
-   branches for `main`. After release, merge `origin/main` back into `dev` locally
-   and push to synchronize history (this synchronization is the exception to the
-   no-direct-commits rule; do not author new changes on `dev`).
+   branches for `main`. Keep working from `dev` after release; release automation
+   does not commit generated files, so no version commits need to be synced back.
 
 GitHub closes linked issues when their closing commits reach the default branch,
 currently `main`; merging a feature PR to `dev` does not immediately close its issue.
