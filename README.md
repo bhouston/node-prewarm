@@ -53,6 +53,9 @@ See `vitest.config.ts` and `test/prewarm.test.ts` for a minimal Express-based in
 
 ## Development
 
+Read [CONTRIBUTING.md](CONTRIBUTING.md) for the issue → branch → PR workflow and
+[release setup](docs/releasing.md) for automated npm publishing.
+
 Uses `pnpm`. Pin Node with `.nvmrc` (`nvm use`).
 
 ```bash
@@ -71,7 +74,7 @@ MIT
 [npm-url]: https://www.npmjs.com/package/node-prewarm
 [npm-downloads]: https://img.shields.io/npm/dw/node-prewarm
 [npmtrends-url]: https://www.npmtrends.com/node-prewarm
-[tests-badge]: https://github.com/bhouston/node-prewarm/actions/workflows/coverage.yml/badge.svg
-[tests-url]: https://github.com/bhouston/node-prewarm/actions/workflows/coverage.yml
+[tests-badge]: https://github.com/bhouston/node-prewarm/actions/workflows/ci.yml/badge.svg
+[tests-url]: https://github.com/bhouston/node-prewarm/actions/workflows/ci.yml
 [coverage-badge]: https://codecov.io/gh/bhouston/node-prewarm/branch/main/graph/badge.svg
 [coverage-url]: https://codecov.io/gh/bhouston/node-prewarm
