@@ -29,6 +29,9 @@
     },
     "./package.json": "./package.json"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "prepare": "husky",
     "build": "tsc",
@@ -37,24 +40,40 @@
     "format:check": "oxfmt --check .",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
-    "test": "vitest run",
-    "make-release": "node scripts/make-release.mjs ."
+    "test": "vitest run --coverage",
+    "size": "size-limit",
+    "release": "semantic-release",
+    "release:dry-run": "semantic-release --dry-run",
+    "check": "pnpm format:check && pnpm lint && pnpm build && pnpm test && pnpm size && pnpm check:workflow && pnpm audit --audit-level high",
+    "check:workflow": "node --test scripts/workflow.test.mjs"
   },
   "dependencies": {
-    "yargs": "^18.0.0"
+    "yargs": "^18.1.0"
   },
   "devDependencies": {
-    "@types/node": "^25.8.0",
+    "@commitlint/cli": "^21.2.2",
+    "@commitlint/config-conventional": "^21.2.2",
+    "@semantic-release/changelog": "^7.0.0",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/github": "^12.0.9",
+    "@semantic-release/npm": "^13.1.5",
+    "@semantic-release/release-notes-generator": "^14.1.1",
+    "@size-limit/file": "^14.0.0",
+    "@types/node": "^25.9.7",
     "@types/yargs": "^17.0.35",
-    "@vitest/coverage-v8": "^4.1.10",
-    "express": "^5.1.0",
+    "@vitest/coverage-v8": "^4.1.11",
+    "conventional-changelog-conventionalcommits": "^10.4.0",
+    "express": "^5.2.1",
     "husky": "^9.1.7",
-    "lint-staged": "^17.3.0",
+    "lint-staged": "^17.5.1",
     "oxfmt": "^0.58.0",
-    "oxlint": "^1.73.0",
-    "tsx": "^4.22.0",
+    "oxlint": "^1.83.0",
+    "semantic-release": "^25.0.9",
+    "size-limit": "^14.0.0",
+    "tsx": "^4.23.13",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.10",
+    "vite": "^8.3.0",
+    "vitest": "^4.1.11",
     "vitest-command-line": "^0.9.0"
   },
   "lint-staged": {
@@ -64,6 +83,14 @@
     ],
     "*.{json,jsonc,md,mdx,css,html,yml,yaml}": "oxfmt"
   },
+  "size-limit": [
+    {
+      "name": "Compiled CLI and library (gzip, excluding dependencies)",
+      "path": "dist/*.js",
+      "limit": "5 kB",
+      "gzip": true
+    }
+  ],
   "engines": {
     "node": ">=25"
   },
