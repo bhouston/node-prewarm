@@ -9,28 +9,24 @@ Read it before changing code. AGENTS.md and CLAUDE.md point here intentionally.
    the feature template (or reuse the issue already tracking the request). Include
    a description, motivation, acceptance criteria, and constraints. CLI-created
    issues must include the same information. Do not include credentials.
-2. Fetch `origin`, branch from `origin/dev`, and name the branch
+2. Fetch `origin`, branch from `origin/main`, and name the branch
    `<type>/<issue-number>-<short-description>`, for example `feat/42-batch-export`.
    Types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `style`, `perf`, `build`, `ci`.
-   Never commit directly to `main` or `dev`. Preserve unrelated local changes.
+   Never commit directly to `main`. Preserve unrelated local changes.
 3. Implement the issue and run `pnpm check`. Add meaningful tests for behavior
    changes. Every commit must use Conventional Commits. Husky checks staged files
    and commit messages after `pnpm install`; do not bypass hooks.
-4. Push the branch and open a PR **against `dev`**. Use a Conventional Commit title,
+4. Push the branch and open a PR **against `main`**. Use a Conventional Commit title,
    describe the resulting behavior and validation, and include `Closes #42`
    matching the branch's issue. CI validates the title, commits, branch, and link.
-5. Squash-merge feature PRs into `dev`, retaining the Conventional Commit title
-   and any `BREAKING CHANGE:` footer. Integration merges do not publish.
-6. When ready to release, open a PR from this repository's `dev` to `main`, titled
-   `chore: release dev`. Use **Create a merge commit** for this PR, preserving all
-   feature commits. Never squash or rebase the release PR. CI rejects other source
-   branches for `main`. Keep working from `dev` after release; release automation
-   does not commit generated files, so no version commits need to be synced back.
+5. Squash-merge PRs into `main`, retaining the Conventional Commit title and any
+   `BREAKING CHANGE:` footer. Merging runs CI but does not publish.
 
-GitHub closes linked issues when their closing commits reach the default branch,
-currently `main`; merging a feature PR to `dev` does not immediately close its issue.
-Agents may create issues and PRs as part of an authorized task. Publishing a release
-requires the maintainer's deliberate `dev` → `main` merge.
+GitHub closes linked issues as soon as their closing commit reaches `main`.
+Agents may create issues and PRs as part of an authorized task. Publishing a
+release requires the maintainer's deliberate manual dispatch of the `Release`
+workflow on `main` (`gh workflow run release.yml --ref main`); merges never
+publish on their own.
 
 ## Commit format
 
@@ -70,11 +66,14 @@ Update thresholds only with an explicit rationale in the PR.
 ## Releases and repository setup
 
 See [release setup](docs/releasing.md) for npm trusted publishing and GitHub settings.
-Only pushes to `main` run semantic-release, after the same quality checks pass.
-It derives versions from commits since the last `v*` tag, publishes to npm, creates
+Releases only happen when the maintainer manually dispatches the `Release`
+workflow on `main`; PR merges and tag pushes never trigger a release. The
+workflow reruns the same quality checks, then semantic-release derives a
+version from commits since the last `v*` tag, publishes to npm, creates
 release notes and a GitHub release, and attaches a generated `CHANGELOG.md`.
 The changelog attachment covers commits in that release; the GitHub Releases page
 is the cumulative changelog. The package version is updated in CI for publication,
 not committed back. This avoids release-bot commits and branch-protection bypasses.
+A dispatch with no release-worthy commits succeeds without publishing anything.
 
 For other repositories, see [rollout guidance](docs/workflow-rollout.md).

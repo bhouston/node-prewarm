@@ -10,7 +10,7 @@ import config from "../release.config.js";
 const event = {
   repository: { full_name: "bhouston/node-prewarm" },
   pull_request: {
-    base: { ref: "dev" },
+    base: { ref: "main" },
     head: { ref: "chore/1-example", repo: { full_name: "bhouston/node-prewarm" } },
     body: "Closes #1",
     title: "ci: automate contribution workflow",
@@ -48,26 +48,9 @@ for (const [name, modify, valid] of [
     false,
   ],
   [
-    "rejects feature into main",
+    "rejects wrong target branch",
     (pr) => {
-      pr.base.ref = "main";
-    },
-    false,
-  ],
-  [
-    "accepts release from dev",
-    (pr) => {
-      pr.base.ref = "main";
-      pr.head.ref = "dev";
-    },
-    true,
-  ],
-  [
-    "rejects release from fork",
-    (pr) => {
-      pr.base.ref = "main";
-      pr.head.ref = "dev";
-      pr.head.repo.full_name = "fork/repo";
+      pr.base.ref = "dev";
     },
     false,
   ],

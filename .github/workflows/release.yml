@@ -1,8 +1,12 @@
 name: Release
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Verify without publishing
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -12,7 +16,17 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  guard:
+    name: Guard ref
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require dispatch on main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Release must be dispatched with --ref main (got ${{ github.ref }})."
+          exit 1
   checks:
+    needs: guard
     uses: ./.github/workflows/ci.yml
     secrets: inherit
   release:
@@ -33,7 +47,23 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - name: Publish with npm trusted publishing
+      - name: Release with npm trusted publishing
+        id: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm release
+        run: |
+          script=release
+          [ "${{ inputs.dry_run }}" = "true" ] && script=release:dry-run
+          pnpm "$script" 2>&1 | tee release.log
+      - name: Summarize
+        if: always()
+        run: |
+          {
+            if grep -qi "no relevant changes" release.log; then
+              echo "No release-worthy commits since the last release; nothing published."
+            elif [ "${{ inputs.dry_run }}" = "true" ]; then
+              echo "Dry run completed; no changes were published."
+            else
+              echo "Release published. See the job log and GitHub Releases for the version."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -16,20 +16,21 @@ publishing and add GitHub Actions with these exact values:
 The workflow uses GitHub-hosted runners, Node 26 (which includes npm newer than
 11.5.1), and `id-token: write`. It deliberately does not set `registry-url`,
 `NODE_AUTH_TOKEN`, or `NPM_TOKEN`. npm generates provenance automatically for trusted
-publishing. Configure this trust before merging the first release PR into `main`.
+publishing. Configure this trust before the first manual `Release` dispatch on `main`.
 
 References: [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/)
 and [semantic-release GitHub Actions](https://semantic-release.org/recipes/ci-configurations/github-actions/).
 
 ## GitHub settings
 
-- Keep `main` as the default branch. `dev` is the integration branch.
+- Keep `main` as the default and sole active integration branch.
 - Create an environment named `npm`, restricting deployments to `main`.
-- Protect `dev` and `main`: require a PR and the `Quality` and `Contribution policy`
-  checks; block force pushes and deletion. The maintainer can configure reviews
+- Protect `main`: require a PR and the `Quality` and `Contribution policy` checks;
+  block force pushes and deletion. The maintainer can configure reviews
   appropriate for a solo or team repository.
-- Enable squash merges for feature PRs and merge commits for release PRs. Disable
-  rebase merges. Select the correct merge method per CONTRIBUTING.md.
+- Enable squash merges for feature PRs; disable rebase merges.
+- The `Release` workflow only runs via manual dispatch
+  (`gh workflow run release.yml --ref main`), never on push or tag creation.
 - Optionally configure `CODECOV_TOKEN` for the existing Codecov badge. Coverage
   thresholds and artifact uploads work independently of the reporting service.
 
@@ -42,17 +43,20 @@ package. Older non-conventional commits will not produce release entries.
 
 ## Release and recovery
 
-Merge tested work into `dev`. Open `dev` → `main` and merge with a merge commit.
-The release workflow reruns quality checks, computes the version, updates the
-package manifest in its checkout, publishes npm, and creates the GitHub release
-with generated notes and a changelog attachment. Maintenance-only changes may
-produce no release. This workflow setup itself uses a `ci:` commit and does not
-force a new package version.
+Merge tested feature PRs into `main`; merging never publishes. When ready to
+release, run `gh workflow run release.yml --ref main`. The workflow rejects any
+other ref before running privileged steps, reruns quality checks against that
+exact commit, computes the version, updates the package manifest in its
+checkout, publishes npm, and creates the GitHub release with generated notes
+and a changelog attachment. Maintenance-only changes may produce no release;
+the run summary reports that outcome clearly instead of publishing.
 
-`pnpm release:dry-run` previews from `main` with GitHub authentication, but can still
-perform remote authentication checks. It does not prove OIDC publishing works
-outside GitHub Actions. The first real release after configuring npm validates
-that final connection. No local publish command is provided.
+Pass `dry_run: true` on the dispatch (or `gh workflow run release.yml --ref main
+-f dry_run=true`) to run `pnpm release:dry-run` for verification without
+publishing. It still performs remote authentication checks, but it does not
+prove OIDC publishing works outside GitHub Actions. The first real release
+after configuring npm validates that final connection. No local publish
+command is provided.
 
 If a run fails before publication, fix the configuration and rerun the failed
 workflow. If npm publication succeeded but GitHub release creation failed, inspect
