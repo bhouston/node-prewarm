@@ -19,8 +19,9 @@ Read it before changing code. AGENTS.md and CLAUDE.md point here intentionally.
 4. Push the branch and open a PR **against `main`**. Use a Conventional Commit title,
    describe the resulting behavior and validation, and include `Closes #42`
    matching the branch's issue. CI validates the title, commits, branch, and link.
-5. Squash-merge PRs into `main`, retaining the Conventional Commit title and any
-   `BREAKING CHANGE:` footer. Merging runs CI but does not publish.
+5. Merge PRs into `main` with a merge commit (never squash or rebase), keeping the
+   Conventional Commit title and any `BREAKING CHANGE:` footer. Merging runs CI
+   but does not publish.
 
 GitHub closes linked issues as soon as their closing commit reaches `main`.
 Agents may create issues and PRs as part of an authorized task. Publishing a
