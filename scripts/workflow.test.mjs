@@ -20,6 +20,13 @@ const event = {
 for (const [name, modify, valid] of [
   ["accepts linked contribution", () => {}, true],
   [
+    "accepts any branch name",
+    (pr) => {
+      pr.head.ref = "topic";
+    },
+    true,
+  ],
+  [
     "rejects missing issue",
     (pr) => {
       pr.body = "";
@@ -27,23 +34,9 @@ for (const [name, modify, valid] of [
     false,
   ],
   [
-    "rejects different issue",
-    (pr) => {
-      pr.body = "Closes #12";
-    },
-    false,
-  ],
-  [
     "rejects nonconventional title",
     (pr) => {
       pr.title = "random message";
-    },
-    false,
-  ],
-  [
-    "rejects untracked branch",
-    (pr) => {
-      pr.head.ref = "topic";
     },
     false,
   ],

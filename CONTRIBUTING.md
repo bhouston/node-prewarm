@@ -9,16 +9,14 @@ Read it before changing code. AGENTS.md and CLAUDE.md point here intentionally.
    the feature template (or reuse the issue already tracking the request). Include
    a description, motivation, acceptance criteria, and constraints. CLI-created
    issues must include the same information. Do not include credentials.
-2. Fetch `origin`, branch from `origin/main`, and name the branch
-   `<type>/<issue-number>-<short-description>`, for example `feat/42-batch-export`.
-   Types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `style`, `perf`, `build`, `ci`.
+2. Fetch `origin` and branch from `origin/main`. Branch names are not restricted.
    Never commit directly to `main`. Preserve unrelated local changes.
 3. Implement the issue and run `pnpm check`. Add meaningful tests for behavior
    changes. Every commit must use Conventional Commits. Husky checks staged files
    and commit messages after `pnpm install`; do not bypass hooks.
 4. Push the branch and open a PR **against `main`**. Use a Conventional Commit title,
    describe the resulting behavior and validation, and include `Closes #42`
-   matching the branch's issue. CI validates the title, commits, branch, and link.
+   for the issue it resolves. CI validates the title, commits, and issue link.
 5. Merge reviewed PRs into `main` with a merge commit (`gh pr merge --merge`) so
    every Conventional Commit is preserved. Do not squash or rebase-merge.
    Merging runs CI but does not publish.

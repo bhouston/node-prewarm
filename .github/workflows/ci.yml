@@ -60,7 +60,7 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Validate PR branch, issue link, and title
+      - name: Validate PR issue link and title
         run: node scripts/check-pr.mjs
       - name: Lint feature commits
         env:
