@@ -52,6 +52,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -o pipefail
           script=release
           [ "${{ inputs.dry_run }}" = "true" ] && script=release:dry-run
           pnpm "$script" 2>&1 | tee release.log
