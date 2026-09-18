@@ -71,7 +71,7 @@
     "semantic-release": "^25.0.9",
     "size-limit": "^14.0.0",
     "tsx": "^4.23.13",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "vite": "^8.3.0",
     "vitest": "^4.1.11",
     "vitest-command-line": "^0.9.0"
