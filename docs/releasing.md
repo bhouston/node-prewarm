@@ -28,7 +28,7 @@ and [semantic-release GitHub Actions](https://semantic-release.org/recipes/ci-co
 - Protect `main`: require a PR and the `Quality` and `Contribution policy` checks;
   block force pushes and deletion. The maintainer can configure reviews
   appropriate for a solo or team repository.
-- Enable squash merges for feature PRs; disable rebase merges.
+- Enable merge commits for feature PRs; disable squash merges and rebase merges.
 - The `Release` workflow only runs via manual dispatch
   (`gh workflow run release.yml --ref main`), never on push or tag creation.
 - Optionally configure `CODECOV_TOKEN` for the existing Codecov badge. Coverage
