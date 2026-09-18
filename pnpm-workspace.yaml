@@ -2,3 +2,5 @@ packages:
   - "."
 allowBuilds:
   esbuild: true
+overrides:
+  conventional-changelog-conventionalcommits: 9.3.1
