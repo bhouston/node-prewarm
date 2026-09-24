@@ -24,6 +24,12 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
+      - name: Verify published package includes dist
+        run: |
+          pnpm pack --dry-run 2>&1 | grep -qx 'dist/cli.js' || {
+            echo "::error::dist/cli.js missing from the packed tarball; the publish step would ship a broken package."
+            exit 1
+          }
       - name: Report coverage and size
         if: always()
         run: |
