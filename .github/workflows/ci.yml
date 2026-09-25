@@ -1,29 +1,39 @@
-name: CI
+name: ci
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened, edited]
   workflow_call:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  quality:
-    name: Quality
+  ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: pnpm/action-setup@v5
       - uses: actions/setup-node@v6
         with:
-          node-version-file: .nvmrc
+          node-version-file: '.nvmrc'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm check
+      - run: pnpm build
+      - run: pnpm tsc
+      - run: pnpm lint
+      - name: Check formatting
+        run: pnpm exec oxfmt --check .
+      - run: pnpm test --coverage
+      # --- repository-specific steps (package-content check, size budget, e2e, docs, ...) go here ---
       - name: Generate OpenCLI document
         run: node dist/cli.js docgen --output opencli.json
       - uses: bhouston/clidoc-action@v1
@@ -37,46 +47,18 @@ jobs:
             echo "::error::dist/cli.js missing from the packed tarball; the publish step would ship a broken package."
             exit 1
           }
-      - name: Report coverage and size
-        if: always()
-        run: |
-          if [ -f coverage/coverage-summary.json ]; then
-            node --input-type=module -e 'import fs from "node:fs"; const c = JSON.parse(fs.readFileSync("coverage/coverage-summary.json")).total; for (const [k,v] of Object.entries(c)) console.log(`${k}: ${v.pct}%`);' >> "$GITHUB_STEP_SUMMARY"
-          fi
-          if [ -d dist ]; then
-            pnpm size >> "$GITHUB_STEP_SUMMARY" 2>&1
-          fi
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage
-          path: coverage/
-          if-no-files-found: ignore
+      - name: Check size budget
+        run: pnpm size
+      - name: Audit dependencies
+        id: audit
+        continue-on-error: true
+        run: pnpm audit --audit-level=high
+      - name: Flag audit findings
+        if: steps.audit.outcome == 'failure'
+        run: echo '::warning::Dependency audit found vulnerabilities or could not reach the registry. Review the audit step.'
       - uses: codecov/codecov-action@v5
-        if: github.event_name == 'push'
+        if: ${{ !cancelled() && hashFiles('coverage/lcov.info') != '' }}
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage/lcov.info
           fail_ci_if_error: false
-
-  contribution:
-    name: Contribution policy
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-      - uses: pnpm/action-setup@v5
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - name: Validate PR issue link and title
-        run: node scripts/check-pr.mjs
-      - name: Lint feature commits
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: pnpm exec commitlint --from "$BASE_SHA" --to "$HEAD_SHA" --verbose

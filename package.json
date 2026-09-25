@@ -38,14 +38,13 @@
     "tsc": "tsc --noEmit",
     "prepublishOnly": "pnpm run build",
     "format": "oxfmt .",
-    "format:check": "oxfmt --check .",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
-    "test": "vitest run --coverage",
+    "test": "vitest run",
     "size": "size-limit",
     "release": "semantic-release",
     "release:dry-run": "semantic-release --dry-run",
-    "check": "pnpm format:check && pnpm lint && pnpm build && pnpm test && pnpm size && pnpm check:workflow && pnpm audit --audit-level high",
+    "check": "pnpm exec oxfmt --check . && pnpm lint && pnpm build && pnpm test && pnpm size && pnpm check:workflow && pnpm audit --audit-level high",
     "check:workflow": "node --test scripts/workflow.test.mjs"
   },
   "dependencies": {
