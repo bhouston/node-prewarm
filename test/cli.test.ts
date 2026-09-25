@@ -1,28 +1,28 @@
-import { mkdtemp, rm } from "node:fs/promises";
-import net from "node:net";
-import { tmpdir } from "node:os";
-import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { mkdtemp, rm } from 'node:fs/promises';
+import net from 'node:net';
+import { tmpdir } from 'node:os';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { commandLine } from "vitest-command-line";
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { commandLine } from 'vitest-command-line';
 
-import { main } from "../src/cli.ts";
+import { main } from '../src/cli.ts';
 
 const testDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = dirname(testDir);
-const tsxCli = join(repoRoot, "node_modules/tsx/dist/cli.mjs");
-const cliEntry = join(repoRoot, "src/cli.ts");
-const miniServerFixture = join(testDir, "fixtures", "mini-server.ts");
+const tsxCli = join(repoRoot, 'node_modules/tsx/dist/cli.mjs');
+const cliEntry = join(repoRoot, 'src/cli.ts');
+const miniServerFixture = join(testDir, 'fixtures', 'mini-server.ts');
 
 function getFreePort(): Promise<number> {
   return new Promise((resolvePort, rejectPort) => {
     const server = net.createServer();
-    server.on("error", rejectPort);
-    server.listen(0, "127.0.0.1", () => {
+    server.on('error', rejectPort);
+    server.listen(0, '127.0.0.1', () => {
       const address = server.address();
-      if (address === null || typeof address === "string") {
-        rejectPort(new Error("unexpected server address"));
+      if (address === null || typeof address === 'string') {
+        rejectPort(new Error('unexpected server address'));
         return;
       }
       const port = address.port;
@@ -32,7 +32,7 @@ function getFreePort(): Promise<number> {
 }
 
 async function withCacheDir<T>(run: (cacheDir: string) => Promise<T>): Promise<T> {
-  const cacheDir = await mkdtemp(join(tmpdir(), "node-prewarm-cli-"));
+  const cacheDir = await mkdtemp(join(tmpdir(), 'node-prewarm-cli-'));
   try {
     return await run(cacheDir);
   } finally {
@@ -40,7 +40,7 @@ async function withCacheDir<T>(run: (cacheDir: string) => Promise<T>): Promise<T
   }
 }
 
-describe("cli", () => {
+describe('cli', () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -49,33 +49,33 @@ describe("cli", () => {
     command: [process.execPath, tsxCli, cliEntry],
     cwd: repoRoot,
     env: { ...process.env },
-    name: "node-prewarm",
+    name: 'node-prewarm',
   });
 
-  it("prints usage errors and exits with code 2", async () => {
+  it('prints usage errors and exits with code 2', async () => {
     const result = await cli.run([], {
       timeout: 5_000,
-      subprocessCleanup: "process-tree",
+      subprocessCleanup: 'process-tree',
     });
 
     expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("Usage: node-prewarm <command> --port <port> [options]");
+    expect(result.stderr).toContain('Usage: node-prewarm <command> --port <port> [options]');
   });
 
-  it("prints an OpenCLI document for the docgen subcommand", async () => {
-    const result = await cli.run(["docgen"], {
+  it('prints an OpenCLI document for the docgen subcommand', async () => {
+    const result = await cli.run(['docgen'], {
       timeout: 5_000,
-      subprocessCleanup: "process-tree",
+      subprocessCleanup: 'process-tree',
     });
 
     expect(result.exitCode).toBe(0);
     const document = JSON.parse(result.stdout);
-    expect(document.info.binary).toBe("node-prewarm");
-    expect(document.commands["node-prewarm"]).toBeDefined();
-    expect(document.commands["node-prewarm docgen"]).toBeDefined();
+    expect(document.info.binary).toBe('node-prewarm');
+    expect(document.commands['node-prewarm']).toBeDefined();
+    expect(document.commands['node-prewarm docgen']).toBeDefined();
   });
 
-  it("routes docgen through the injected runtime instead of prewarm", async () => {
+  it('routes docgen through the injected runtime instead of prewarm', async () => {
     const error = vi.fn();
     const exit = vi.fn();
     const setExitCode = vi.fn();
@@ -83,7 +83,7 @@ describe("cli", () => {
     const prewarm = vi.fn();
     const runDocgen = vi.fn(async () => {});
 
-    await main(["docgen", "--output", "/dev/null"], {
+    await main(['docgen', '--output', '/dev/null'], {
       error,
       exit,
       setExitCode,
@@ -92,7 +92,7 @@ describe("cli", () => {
       runDocgen,
     });
 
-    expect(runDocgen).toHaveBeenCalledWith(["docgen", "--output", "/dev/null"]);
+    expect(runDocgen).toHaveBeenCalledWith(['docgen', '--output', '/dev/null']);
     expect(parseArgv).not.toHaveBeenCalled();
     expect(prewarm).not.toHaveBeenCalled();
     expect(exit).not.toHaveBeenCalled();
@@ -100,30 +100,30 @@ describe("cli", () => {
     expect(setExitCode).not.toHaveBeenCalled();
   });
 
-  it("uses the default runtime when no overrides are supplied", async () => {
-    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+  it('uses the default runtime when no overrides are supplied', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
     const originalExitCode = process.exitCode;
 
     try {
       process.exitCode = undefined;
       await main([]);
-      expect(error).toHaveBeenCalledWith("Usage: node-prewarm <command> --port <port> [options]");
+      expect(error).toHaveBeenCalledWith('Usage: node-prewarm <command> --port <port> [options]');
       expect(process.exitCode).toBe(2);
     } finally {
       process.exitCode = originalExitCode;
     }
   });
 
-  it("sets exitCode 2 when argument parsing fails", async () => {
+  it('sets exitCode 2 when argument parsing fails', async () => {
     const error = vi.fn();
     const exit = vi.fn();
     const setExitCode = vi.fn();
     const parseArgv = vi.fn(() => {
-      throw new Error("bad argv");
+      throw new Error('bad argv');
     });
     const prewarm = vi.fn();
 
-    await main(["--bad"], {
+    await main(['--bad'], {
       error,
       exit,
       setExitCode,
@@ -132,22 +132,22 @@ describe("cli", () => {
       runDocgen: vi.fn(),
     });
 
-    expect(error).toHaveBeenCalledWith("bad argv");
+    expect(error).toHaveBeenCalledWith('bad argv');
     expect(setExitCode).toHaveBeenCalledWith(2);
     expect(prewarm).not.toHaveBeenCalled();
     expect(exit).not.toHaveBeenCalled();
   });
 
-  it("logs non-Error parse failures as-is", async () => {
+  it('logs non-Error parse failures as-is', async () => {
     const error = vi.fn();
     const exit = vi.fn();
     const setExitCode = vi.fn();
     const parseArgv = vi.fn(() => {
-      throw "bad argv";
+      throw 'bad argv';
     });
     const prewarm = vi.fn();
 
-    await main(["--bad"], {
+    await main(['--bad'], {
       error,
       exit,
       setExitCode,
@@ -156,19 +156,19 @@ describe("cli", () => {
       runDocgen: vi.fn(),
     });
 
-    expect(error).toHaveBeenCalledWith("bad argv");
+    expect(error).toHaveBeenCalledWith('bad argv');
     expect(setExitCode).toHaveBeenCalledWith(2);
   });
 
-  it("passes parsed options to prewarm and exits with its code", async () => {
+  it('passes parsed options to prewarm and exits with its code', async () => {
     const error = vi.fn();
     const exit = vi.fn();
     const setExitCode = vi.fn();
     const parseArgv = vi.fn(() => ({
-      command: "node server.js",
+      command: 'node server.js',
       options: {
         port: 8080,
-        host: "127.0.0.1",
+        host: '127.0.0.1',
         listenTimeout: 10,
         shutdownTimeout: 5,
         dryRun: false,
@@ -181,7 +181,7 @@ describe("cli", () => {
     }));
     const prewarm = vi.fn(async () => ({ exitCode: 7 }));
 
-    await main(["node server.js", "--port", "8080"], {
+    await main(['node server.js', '--port', '8080'], {
       error,
       exit,
       setExitCode,
@@ -191,9 +191,9 @@ describe("cli", () => {
     });
 
     expect(prewarm).toHaveBeenCalledWith({
-      command: "node server.js",
+      command: 'node server.js',
       port: 8080,
-      host: "127.0.0.1",
+      host: '127.0.0.1',
       listenTimeout: 10,
       shutdownTimeout: 5,
       dryRun: false,
@@ -202,20 +202,20 @@ describe("cli", () => {
       skipVersionCheck: false,
       ignoreShutdownTimeout: false,
       ignoreCrash: false,
-      stdio: "inherit",
+      stdio: 'inherit',
     });
     expect(exit).toHaveBeenCalledWith(7);
     expect(error).not.toHaveBeenCalled();
     expect(setExitCode).not.toHaveBeenCalled();
   });
 
-  it("runs the CLI successfully against the fixture server", async () => {
+  it('runs the CLI successfully against the fixture server', async () => {
     await withCacheDir(async (cacheDir) => {
       const port = await getFreePort();
       const command = `${JSON.stringify(process.execPath)} ${JSON.stringify(tsxCli)} ${JSON.stringify(miniServerFixture)}`;
-      const result = await cli.run([command, "--port", String(port), "--host", "127.0.0.1"], {
+      const result = await cli.run([command, '--port', String(port), '--host', '127.0.0.1'], {
         timeout: 10_000,
-        subprocessCleanup: "process-tree",
+        subprocessCleanup: 'process-tree',
         env: {
           ...process.env,
           NODE_COMPILE_CACHE: cacheDir,
@@ -229,21 +229,18 @@ describe("cli", () => {
     });
   });
 
-  it("supports --dry-run without NODE_COMPILE_CACHE", async () => {
+  it('supports --dry-run without NODE_COMPILE_CACHE', async () => {
     const port = await getFreePort();
     const command = `${JSON.stringify(process.execPath)} ${JSON.stringify(tsxCli)} ${JSON.stringify(miniServerFixture)}`;
-    const result = await cli.run(
-      [command, "--port", String(port), "--host", "127.0.0.1", "--dry-run"],
-      {
-        timeout: 10_000,
-        subprocessCleanup: "process-tree",
-        env: { ...process.env, NODE_COMPILE_CACHE: "" },
-      },
-    );
+    const result = await cli.run([command, '--port', String(port), '--host', '127.0.0.1', '--dry-run'], {
+      timeout: 10_000,
+      subprocessCleanup: 'process-tree',
+      env: { ...process.env, NODE_COMPILE_CACHE: '' },
+    });
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain(`Waiting for response on 127.0.0.1:${port}`);
     expect(result.stdout).toContain(`Response detected on 127.0.0.1:${port}`);
-    expect(result.stdout).not.toContain("NODE_COMPILE_CACHE:");
+    expect(result.stdout).not.toContain('NODE_COMPILE_CACHE:');
   });
 });

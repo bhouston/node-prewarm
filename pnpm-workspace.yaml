@@ -1,10 +1,10 @@
 packages:
-  - "."
+  - '.'
 allowBuilds:
   esbuild: true
 overrides:
   conventional-changelog-conventionalcommits: 9.3.1
 minimumReleaseAgeExclude:
-  - "@clidoc/core"
-  - "@clidoc/yargs"
-  - "vitest-command-line"
+  - '@clidoc/core'
+  - '@clidoc/yargs'
+  - 'vitest-command-line'

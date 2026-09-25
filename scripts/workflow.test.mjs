@@ -1,63 +1,63 @@
-import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { spawnSync } from "node:child_process";
-import { test } from "node:test";
-import { analyzeCommits } from "@semantic-release/commit-analyzer";
-import config from "../release.config.js";
+import assert from 'node:assert/strict';
+import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { test } from 'node:test';
+import { analyzeCommits } from '@semantic-release/commit-analyzer';
+import config from '../release.config.js';
 
 const event = {
-  repository: { full_name: "bhouston/node-prewarm" },
+  repository: { full_name: 'bhouston/node-prewarm' },
   pull_request: {
-    base: { ref: "main" },
-    head: { ref: "chore/1-example", repo: { full_name: "bhouston/node-prewarm" } },
-    body: "Closes #1",
-    title: "ci: automate contribution workflow",
+    base: { ref: 'main' },
+    head: { ref: 'chore/1-example', repo: { full_name: 'bhouston/node-prewarm' } },
+    body: 'Closes #1',
+    title: 'ci: automate contribution workflow',
   },
 };
 
 for (const [name, modify, valid] of [
-  ["accepts linked contribution", () => {}, true],
+  ['accepts linked contribution', () => {}, true],
   [
-    "accepts any branch name",
+    'accepts any branch name',
     (pr) => {
-      pr.head.ref = "topic";
+      pr.head.ref = 'topic';
     },
     true,
   ],
   [
-    "rejects missing issue",
+    'rejects missing issue',
     (pr) => {
-      pr.body = "";
+      pr.body = '';
     },
     false,
   ],
   [
-    "rejects nonconventional title",
+    'rejects nonconventional title',
     (pr) => {
-      pr.title = "random message";
+      pr.title = 'random message';
     },
     false,
   ],
   [
-    "rejects wrong target branch",
+    'rejects wrong target branch',
     (pr) => {
-      pr.base.ref = "dev";
+      pr.base.ref = 'dev';
     },
     false,
   ],
 ]) {
   test(name, () => {
-    const dir = mkdtempSync(join(tmpdir(), "prewarm-policy-"));
+    const dir = mkdtempSync(join(tmpdir(), 'prewarm-policy-'));
     try {
       const input = structuredClone(event);
       modify(input.pull_request);
-      const path = join(dir, "event.json");
+      const path = join(dir, 'event.json');
       writeFileSync(path, JSON.stringify(input));
-      const result = spawnSync(process.execPath, ["scripts/check-pr.mjs"], {
+      const result = spawnSync(process.execPath, ['scripts/check-pr.mjs'], {
         env: { ...process.env, GITHUB_EVENT_PATH: path },
-        encoding: "utf8",
+        encoding: 'utf8',
       });
       assert.equal(result.status === 0, valid, result.stderr);
     } finally {
@@ -67,22 +67,22 @@ for (const [name, modify, valid] of [
 }
 
 const [, analyzerOptions] = config.plugins.find(
-  (plugin) => Array.isArray(plugin) && plugin[0] === "@semantic-release/commit-analyzer",
+  (plugin) => Array.isArray(plugin) && plugin[0] === '@semantic-release/commit-analyzer',
 );
 for (const [message, expected] of [
-  ["feat: example", "minor"],
-  ["fix: example", "patch"],
-  ["perf: example", "patch"],
-  ["feat!: remove api", "major"],
-  ["fix(api)!: remove api", "major"],
-  ["refactor: replace api\n\nBREAKING CHANGE: migrate to the new API", "major"],
-  ["ci: automate contribution workflow", null],
+  ['feat: example', 'minor'],
+  ['fix: example', 'patch'],
+  ['perf: example', 'patch'],
+  ['feat!: remove api', 'major'],
+  ['fix(api)!: remove api', 'major'],
+  ['refactor: replace api\n\nBREAKING CHANGE: migrate to the new API', 'major'],
+  ['ci: automate contribution workflow', null],
 ]) {
   test(`release classification: ${message}`, async () => {
     assert.equal(
       await analyzeCommits(analyzerOptions, {
         cwd: process.cwd(),
-        commits: [{ hash: "abc", message }],
+        commits: [{ hash: 'abc', message }],
         logger: { log() {} },
       }),
       expected,

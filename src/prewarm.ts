@@ -1,10 +1,10 @@
-import { spawn, type ChildProcess } from "node:child_process";
-import fs from "node:fs";
-import net from "node:net";
-import path from "node:path";
-import yargs, { type Argv } from "yargs";
+import { spawn, type ChildProcess } from 'node:child_process';
+import fs from 'node:fs';
+import net from 'node:net';
+import path from 'node:path';
+import yargs, { type Argv } from 'yargs';
 
-export type StdioChoice = "inherit" | "ignore" | "pipe";
+export type StdioChoice = 'inherit' | 'ignore' | 'pipe';
 
 export interface PrewarmCliOptions {
   port: number;
@@ -34,83 +34,83 @@ interface RawCliArguments {
   command: string;
   port: number;
   host: string;
-  "listen-timeout": number;
-  "shutdown-timeout": number;
-  "dry-run": boolean;
-  "clear-cache": boolean;
-  "verify-cache": boolean;
-  "skip-version-check": boolean;
-  "ignore-shutdown-timeout": boolean;
-  "ignore-crash": boolean;
+  'listen-timeout': number;
+  'shutdown-timeout': number;
+  'dry-run': boolean;
+  'clear-cache': boolean;
+  'verify-cache': boolean;
+  'skip-version-check': boolean;
+  'ignore-shutdown-timeout': boolean;
+  'ignore-crash': boolean;
 }
 
-export const MAIN_COMMAND_DESCRIPTION = "Start a process, wait for a port, then shut it down";
+export const MAIN_COMMAND_DESCRIPTION = 'Start a process, wait for a port, then shut it down';
 
 function buildMainCommand(cli: Argv): Argv {
   return cli
-    .positional("command", {
-      type: "string",
-      describe: "Shell command to start and prewarm",
+    .positional('command', {
+      type: 'string',
+      describe: 'Shell command to start and prewarm',
     })
-    .option("port", {
-      type: "number",
+    .option('port', {
+      type: 'number',
       demandOption: true,
-      describe: "TCP port to wait for",
+      describe: 'TCP port to wait for',
     })
-    .option("host", {
-      type: "string",
-      default: "127.0.0.1",
-      describe: "Host to probe while waiting for readiness",
+    .option('host', {
+      type: 'string',
+      default: '127.0.0.1',
+      describe: 'Host to probe while waiting for readiness',
     })
-    .option("listen-timeout", {
-      type: "number",
+    .option('listen-timeout', {
+      type: 'number',
       default: 10,
-      describe: "Seconds to wait for the port to accept connections",
+      describe: 'Seconds to wait for the port to accept connections',
     })
-    .option("shutdown-timeout", {
-      type: "number",
+    .option('shutdown-timeout', {
+      type: 'number',
       default: 5,
-      describe: "Seconds to wait after SIGTERM before forcing SIGKILL",
+      describe: 'Seconds to wait after SIGTERM before forcing SIGKILL',
     })
-    .option("dry-run", {
-      type: "boolean",
+    .option('dry-run', {
+      type: 'boolean',
       default: false,
-      describe: "Measure time until the port is ready without requiring NODE_COMPILE_CACHE",
+      describe: 'Measure time until the port is ready without requiring NODE_COMPILE_CACHE',
     })
-    .option("clear-cache", {
-      type: "boolean",
+    .option('clear-cache', {
+      type: 'boolean',
       default: false,
-      describe: "Remove the compile cache directory before prewarming",
+      describe: 'Remove the compile cache directory before prewarming',
     })
-    .option("verify-cache", {
-      type: "boolean",
+    .option('verify-cache', {
+      type: 'boolean',
       default: false,
-      describe: "Fail if the compile cache directory is still empty afterward",
+      describe: 'Fail if the compile cache directory is still empty afterward',
     })
-    .option("skip-version-check", {
-      type: "boolean",
+    .option('skip-version-check', {
+      type: 'boolean',
       default: false,
-      describe: "Skip the Node.js 25+ check",
+      describe: 'Skip the Node.js 25+ check',
     })
-    .option("ignore-shutdown-timeout", {
-      type: "boolean",
+    .option('ignore-shutdown-timeout', {
+      type: 'boolean',
       default: false,
-      describe: "Treat forced shutdown after timeout as success",
+      describe: 'Treat forced shutdown after timeout as success',
     })
-    .option("ignore-crash", {
-      type: "boolean",
+    .option('ignore-crash', {
+      type: 'boolean',
       default: false,
-      describe: "Treat an early process exit as success",
+      describe: 'Treat an early process exit as success',
     })
-    .check((options: Pick<RawCliArguments, "port" | "listen-timeout" | "shutdown-timeout">) => {
+    .check((options: Pick<RawCliArguments, 'port' | 'listen-timeout' | 'shutdown-timeout'>) => {
       if (!Number.isFinite(options.port)) {
-        throw new Error("The --port option is required.");
+        throw new Error('The --port option is required.');
       }
-      if (!Number.isFinite(options["listen-timeout"]) || options["listen-timeout"] <= 0) {
-        throw new Error("The --listen-timeout option must be a positive number.");
+      if (!Number.isFinite(options['listen-timeout']) || options['listen-timeout'] <= 0) {
+        throw new Error('The --listen-timeout option must be a positive number.');
       }
-      if (!Number.isFinite(options["shutdown-timeout"]) || options["shutdown-timeout"] <= 0) {
-        throw new Error("The --shutdown-timeout option must be a positive number.");
+      if (!Number.isFinite(options['shutdown-timeout']) || options['shutdown-timeout'] <= 0) {
+        throw new Error('The --shutdown-timeout option must be a positive number.');
       }
       return true;
     });
@@ -118,7 +118,7 @@ function buildMainCommand(cli: Argv): Argv {
 
 /** Shared with docgen.ts so the generated OpenCLI spec matches the live parser. */
 export const mainCommandModule = {
-  command: "$0 <command>",
+  command: '$0 <command>',
   describe: MAIN_COMMAND_DESCRIPTION,
   builder: buildMainCommand,
   handler: (): void => {
@@ -129,54 +129,54 @@ export const mainCommandModule = {
 /** CLI parser; throws on invalid invocation. */
 export function parseArgv(argv: string[]): { command: string; options: PrewarmCliOptions } {
   if (argv.length === 0) {
-    throw new Error("Usage: node-prewarm <command> --port <port> [options]");
+    throw new Error('Usage: node-prewarm <command> --port <port> [options]');
   }
 
   const parsed = yargs(argv)
-    .scriptName("node-prewarm")
-    .usage("Usage: $0 <command> --port <port> [options]")
+    .scriptName('node-prewarm')
+    .usage('Usage: $0 <command> --port <port> [options]')
     .exitProcess(false)
     .help(false)
     .version(false)
     .strict()
     .parserConfiguration({
-      "camel-case-expansion": false,
-      "short-option-groups": false,
+      'camel-case-expansion': false,
+      'short-option-groups': false,
     })
     .command(mainCommandModule)
     .fail((message: string | undefined, error: Error | undefined) => {
       if (error instanceof Error) {
         throw error;
       }
-      throw new Error(message ?? "Invalid command line arguments.");
+      throw new Error(message ?? 'Invalid command line arguments.');
     })
     .parseSync() as unknown as RawCliArguments;
 
   const command = parsed.command;
   const port = parsed.port;
-  const listenTimeout = parsed["listen-timeout"];
-  const shutdownTimeout = parsed["shutdown-timeout"];
+  const listenTimeout = parsed['listen-timeout'];
+  const shutdownTimeout = parsed['shutdown-timeout'];
   const cli: PrewarmCliOptions = {
     port,
     host: parsed.host,
     listenTimeout,
     shutdownTimeout,
-    dryRun: parsed["dry-run"],
-    clearCache: parsed["clear-cache"],
-    verifyCache: parsed["verify-cache"],
-    skipVersionCheck: parsed["skip-version-check"],
-    ignoreShutdownTimeout: parsed["ignore-shutdown-timeout"],
-    ignoreCrash: parsed["ignore-crash"],
+    dryRun: parsed['dry-run'],
+    clearCache: parsed['clear-cache'],
+    verifyCache: parsed['verify-cache'],
+    skipVersionCheck: parsed['skip-version-check'],
+    ignoreShutdownTimeout: parsed['ignore-shutdown-timeout'],
+    ignoreCrash: parsed['ignore-crash'],
   };
 
   return { command, options: cli };
 }
 
 function checkNodeVersion(): boolean {
-  const majorVersion = Number.parseInt(process.versions.node.split(".")[0] ?? "0", 10);
+  const majorVersion = Number.parseInt(process.versions.node.split('.')[0] ?? '0', 10);
 
   if (majorVersion < 25) {
-    console.error("Error: Node.js 25+ is required for Stable Module Compile Cache.");
+    console.error('Error: Node.js 25+ is required for Stable Module Compile Cache.');
     console.error(`Current version: ${process.version}`);
     return false;
   }
@@ -209,7 +209,7 @@ function getDirectorySize(dirPath: string): number {
 }
 
 function formatBytes(bytes: number): string {
-  const units = ["B", "KB", "MB", "GB", "TB"];
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
   let value = Math.abs(bytes);
   let unitIndex = 0;
 
@@ -218,7 +218,7 @@ function formatBytes(bytes: number): string {
     unitIndex += 1;
   }
 
-  const sign = bytes < 0 ? "-" : "";
+  const sign = bytes < 0 ? '-' : '';
   const precision = unitIndex === 0 ? 0 : value < 10 ? 1 : 0;
   return `${sign}${value.toFixed(precision)} ${units[unitIndex]}`;
 }
@@ -249,7 +249,7 @@ async function waitForPort(port: number, host: string, timeoutMs: number): Promi
           socket.end();
           resolveConnect();
         });
-        socket.on("error", rejectConnect);
+        socket.on('error', rejectConnect);
       });
       return true;
     } catch {
@@ -260,7 +260,7 @@ async function waitForPort(port: number, host: string, timeoutMs: number): Promi
 }
 
 function pickStdio(option: StdioChoice | undefined): StdioChoice {
-  return option ?? "inherit";
+  return option ?? 'inherit';
 }
 
 /** Pre-warm the Node Stable Module Compile cache. */
@@ -270,9 +270,7 @@ export async function prewarm(options: PrewarmOptions): Promise<PrewarmResult> {
   const dryRun = options.dryRun;
 
   const baseEnv: NodeJS.ProcessEnv =
-    typeof options.env === "object" && options.env !== null
-      ? { ...process.env, ...options.env }
-      : { ...process.env };
+    typeof options.env === 'object' && options.env !== null ? { ...process.env, ...options.env } : { ...process.env };
 
   if (!dryRun && !options.skipVersionCheck) {
     const okVersion = checkNodeVersion();
@@ -283,12 +281,12 @@ export async function prewarm(options: PrewarmOptions): Promise<PrewarmResult> {
 
   const cacheDir = baseEnv.NODE_COMPILE_CACHE;
   if (!dryRun && !cacheDir) {
-    console.error("Error: NODE_COMPILE_CACHE environment variable is required.");
+    console.error('Error: NODE_COMPILE_CACHE environment variable is required.');
     return { exitCode: 1 };
   }
 
   if (!Number.isFinite(options.port)) {
-    console.error("Error: port is required.");
+    console.error('Error: port is required.');
     return { exitCode: 1 };
   }
 
@@ -311,22 +309,20 @@ export async function prewarm(options: PrewarmOptions): Promise<PrewarmResult> {
     console.log(`NODE_COMPILE_CACHE: ${cacheDir}`);
   }
   if (!dryRun && options.clearCache && cacheDir && fs.existsSync(cacheDir)) {
-    console.log("Clearing compile cache directory...");
+    console.log('Clearing compile cache directory...');
     await removeDirectory(cacheDir);
   }
 
   const initialCacheSize = dryRun || !cacheDir ? 0 : getDirectorySize(cacheDir);
 
   console.log(`Starting: "${options.command}"`);
-  console.log(
-    `Waiting for response on ${host}:${targetPort} with a timeout of ${formatDuration(listenTimeoutSec)}...`,
-  );
+  console.log(`Waiting for response on ${host}:${targetPort} with a timeout of ${formatDuration(listenTimeoutSec)}...`);
 
   const stdioOption = pickStdio(options.stdio);
   const startTime = Date.now();
   // On POSIX, replace the wrapper shell with the target command so signals and
   // exit timing reflect the actual server process rather than `/bin/sh`.
-  const spawnedCommand = process.platform === "win32" ? options.command : `exec ${options.command}`;
+  const spawnedCommand = process.platform === 'win32' ? options.command : `exec ${options.command}`;
   const child: ChildProcess = spawn(spawnedCommand, {
     shell: true,
     stdio: stdioOption,
@@ -335,7 +331,7 @@ export async function prewarm(options: PrewarmOptions): Promise<PrewarmResult> {
       ...baseEnv,
       PORT: baseEnv.PORT ?? String(targetPort),
       NITRO_PORT: baseEnv.NITRO_PORT ?? baseEnv.PORT ?? String(targetPort),
-      PREWARM: "true",
+      PREWARM: 'true',
     },
   });
 
@@ -348,31 +344,27 @@ export async function prewarm(options: PrewarmOptions): Promise<PrewarmResult> {
     exitCode = code;
     exitSignal = signal;
   };
-  child.on("exit", exitHandler);
+  child.on('exit', exitHandler);
 
   try {
     const portReady = await waitForPort(targetPort, host, listenTimeoutMs);
 
     if (processExitedEarly && !portReady) {
-      child.removeListener("exit", exitHandler);
+      child.removeListener('exit', exitHandler);
 
       const exitReason = exitSignal
         ? `signal ${exitSignal}`
         : exitCode !== null
           ? `exit code ${exitCode}`
-          : "unknown reason";
+          : 'unknown reason';
 
-      console.error(
-        `Error: Process exited before port ${targetPort} became available (${exitReason})`,
-      );
+      console.error(`Error: Process exited before port ${targetPort} became available (${exitReason})`);
 
       if (options.ignoreCrash) {
         if (!dryRun && cacheDir) {
           const finalCacheSize = getDirectorySize(cacheDir);
           const deltaCacheSize = finalCacheSize - initialCacheSize;
-          console.log(
-            `NODE_COMPILE_CACHE size: ${formatBytes(finalCacheSize)} (${formatBytes(deltaCacheSize)} delta)`,
-          );
+          console.log(`NODE_COMPILE_CACHE size: ${formatBytes(finalCacheSize)} (${formatBytes(deltaCacheSize)} delta)`);
         }
         return { exitCode: 0 };
       }
@@ -381,12 +373,12 @@ export async function prewarm(options: PrewarmOptions): Promise<PrewarmResult> {
     }
 
     if (portReady) {
-      child.removeListener("exit", exitHandler);
+      child.removeListener('exit', exitHandler);
     }
 
     if (!portReady) {
       console.error(`Timeout waiting for port ${targetPort} after ${listenTimeoutSec}s`);
-      child.kill("SIGKILL");
+      child.kill('SIGKILL');
       return { exitCode: 1 };
     }
 
@@ -395,11 +387,11 @@ export async function prewarm(options: PrewarmOptions): Promise<PrewarmResult> {
       `Response detected on ${host}:${targetPort} after ${formatDuration(listenDurationSeconds)}, shutting down with timeout of ${formatDuration(shutdownTimeoutSec)}...`,
     );
 
-    child.kill("SIGTERM");
+    child.kill('SIGTERM');
 
     let shutdownComplete = false;
     const shutdownPromise = new Promise<void>((resolveShutdown) => {
-      child.once("exit", () => {
+      child.once('exit', () => {
         shutdownComplete = true;
         resolveShutdown();
       });
@@ -410,8 +402,8 @@ export async function prewarm(options: PrewarmOptions): Promise<PrewarmResult> {
     await Promise.race([shutdownPromise, timeoutPromise]);
 
     if (!shutdownComplete) {
-      console.warn("Graceful timeout exceeded, forcing SIGKILL...");
-      child.kill("SIGKILL");
+      console.warn('Graceful timeout exceeded, forcing SIGKILL...');
+      child.kill('SIGKILL');
 
       if (!options.ignoreShutdownTimeout) {
         return { exitCode: 1 };
@@ -428,20 +420,18 @@ export async function prewarm(options: PrewarmOptions): Promise<PrewarmResult> {
     if (!dryRun && cacheDir) {
       const finalCacheSize = getDirectorySize(cacheDir);
       const deltaCacheSize = finalCacheSize - initialCacheSize;
-      console.log(
-        `NODE_COMPILE_CACHE size: ${formatBytes(finalCacheSize)} (${formatBytes(deltaCacheSize)} delta)`,
-      );
+      console.log(`NODE_COMPILE_CACHE size: ${formatBytes(finalCacheSize)} (${formatBytes(deltaCacheSize)} delta)`);
 
       if (options.verifyCache && finalCacheSize === 0) {
-        console.error("Error: Cache directory is empty after pre-warm.");
+        console.error('Error: Cache directory is empty after pre-warm.');
         return { exitCode: 1 };
       }
     }
 
     return { exitCode: 0 };
   } catch (error) {
-    child.kill("SIGKILL");
-    console.error("Error during pre-warm:", error);
+    child.kill('SIGKILL');
+    console.error('Error during pre-warm:', error);
     return { exitCode: 1 };
   }
 }

@@ -48,13 +48,13 @@ the result with [clidoc](https://clidoc.dev): `npx @clidoc/cli validate opencli.
 ## Programmatic usage
 
 ```js
-import { prewarm } from "node-prewarm";
+import { prewarm } from 'node-prewarm';
 
 await prewarm({
   command: `node "${entry}"`,
   port: 8080,
   env: {
-    NODE_COMPILE_CACHE: "/app/.node_compile_cache",
+    NODE_COMPILE_CACHE: '/app/.node_compile_cache',
   },
 });
 ```
