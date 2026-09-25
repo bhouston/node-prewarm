@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "ignorePatterns": [],
+  "categories": { "correctness": "error", "suspicious": "warn" },
+  "plugins": ["eslint", "typescript", "oxc", "unicorn"],
+  "rules": { "eslint/no-underscore-dangle": "off" },
+  "overrides": [
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
+      "plugins": ["eslint", "typescript", "oxc", "unicorn", "vitest"]
+    }
+  ]
+}
