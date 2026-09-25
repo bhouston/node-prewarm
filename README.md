@@ -35,6 +35,16 @@ node-prewarm "node .output/server/index.mjs" --port 8080 --dry-run
 
 In `--dry-run` mode, `NODE_COMPILE_CACHE` is not required and no cache size information is reported.
 
+### Generate an OpenCLI document
+
+```bash
+node-prewarm docgen --output opencli.json
+```
+
+Writes an [OpenCLI](https://github.com/bcdxn/opencli) specification of this CLI to stdout,
+or a file with `--output`/`-o`. Use `--format markdown` for a rendered reference. Validate
+the result with [clidoc](https://clidoc.dev): `npx @clidoc/cli validate opencli.json`.
+
 ## Programmatic usage
 
 ```js

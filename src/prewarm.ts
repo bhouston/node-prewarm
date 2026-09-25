@@ -44,6 +44,88 @@ interface RawCliArguments {
   "ignore-crash": boolean;
 }
 
+export const MAIN_COMMAND_DESCRIPTION = "Start a process, wait for a port, then shut it down";
+
+function buildMainCommand(cli: Argv): Argv {
+  return cli
+    .positional("command", {
+      type: "string",
+      describe: "Shell command to start and prewarm",
+    })
+    .option("port", {
+      type: "number",
+      demandOption: true,
+      describe: "TCP port to wait for",
+    })
+    .option("host", {
+      type: "string",
+      default: "127.0.0.1",
+      describe: "Host to probe while waiting for readiness",
+    })
+    .option("listen-timeout", {
+      type: "number",
+      default: 10,
+      describe: "Seconds to wait for the port to accept connections",
+    })
+    .option("shutdown-timeout", {
+      type: "number",
+      default: 5,
+      describe: "Seconds to wait after SIGTERM before forcing SIGKILL",
+    })
+    .option("dry-run", {
+      type: "boolean",
+      default: false,
+      describe: "Measure time until the port is ready without requiring NODE_COMPILE_CACHE",
+    })
+    .option("clear-cache", {
+      type: "boolean",
+      default: false,
+      describe: "Remove the compile cache directory before prewarming",
+    })
+    .option("verify-cache", {
+      type: "boolean",
+      default: false,
+      describe: "Fail if the compile cache directory is still empty afterward",
+    })
+    .option("skip-version-check", {
+      type: "boolean",
+      default: false,
+      describe: "Skip the Node.js 25+ check",
+    })
+    .option("ignore-shutdown-timeout", {
+      type: "boolean",
+      default: false,
+      describe: "Treat forced shutdown after timeout as success",
+    })
+    .option("ignore-crash", {
+      type: "boolean",
+      default: false,
+      describe: "Treat an early process exit as success",
+    })
+    .check((options: Pick<RawCliArguments, "port" | "listen-timeout" | "shutdown-timeout">) => {
+      if (!Number.isFinite(options.port)) {
+        throw new Error("The --port option is required.");
+      }
+      if (!Number.isFinite(options["listen-timeout"]) || options["listen-timeout"] <= 0) {
+        throw new Error("The --listen-timeout option must be a positive number.");
+      }
+      if (!Number.isFinite(options["shutdown-timeout"]) || options["shutdown-timeout"] <= 0) {
+        throw new Error("The --shutdown-timeout option must be a positive number.");
+      }
+      return true;
+    });
+}
+
+/** Shared with docgen.ts so the generated OpenCLI spec matches the live parser. */
+export const mainCommandModule = {
+  command: "$0 <command>",
+  describe: MAIN_COMMAND_DESCRIPTION,
+  builder: buildMainCommand,
+  handler: (): void => {
+    // parseArgv reads the parsed argv directly; prewarm() runs separately.
+  },
+};
+
 /** CLI parser; throws on invalid invocation. */
 export function parseArgv(argv: string[]): { command: string; options: PrewarmCliOptions } {
   if (argv.length === 0) {
@@ -61,75 +143,7 @@ export function parseArgv(argv: string[]): { command: string; options: PrewarmCl
       "camel-case-expansion": false,
       "short-option-groups": false,
     })
-    .command("$0 <command>", "Start a process, wait for a port, then shut it down", (cli: Argv) =>
-      cli
-        .positional("command", {
-          type: "string",
-          describe: "Shell command to start and prewarm",
-        })
-        .option("port", {
-          type: "number",
-          demandOption: true,
-          describe: "TCP port to wait for",
-        })
-        .option("host", {
-          type: "string",
-          default: "127.0.0.1",
-          describe: "Host to probe while waiting for readiness",
-        })
-        .option("listen-timeout", {
-          type: "number",
-          default: 10,
-          describe: "Seconds to wait for the port to accept connections",
-        })
-        .option("shutdown-timeout", {
-          type: "number",
-          default: 5,
-          describe: "Seconds to wait after SIGTERM before forcing SIGKILL",
-        })
-        .option("dry-run", {
-          type: "boolean",
-          default: false,
-          describe: "Measure time until the port is ready without requiring NODE_COMPILE_CACHE",
-        })
-        .option("clear-cache", {
-          type: "boolean",
-          default: false,
-          describe: "Remove the compile cache directory before prewarming",
-        })
-        .option("verify-cache", {
-          type: "boolean",
-          default: false,
-          describe: "Fail if the compile cache directory is still empty afterward",
-        })
-        .option("skip-version-check", {
-          type: "boolean",
-          default: false,
-          describe: "Skip the Node.js 25+ check",
-        })
-        .option("ignore-shutdown-timeout", {
-          type: "boolean",
-          default: false,
-          describe: "Treat forced shutdown after timeout as success",
-        })
-        .option("ignore-crash", {
-          type: "boolean",
-          default: false,
-          describe: "Treat an early process exit as success",
-        })
-        .check((options: Pick<RawCliArguments, "port" | "listen-timeout" | "shutdown-timeout">) => {
-          if (!Number.isFinite(options.port)) {
-            throw new Error("The --port option is required.");
-          }
-          if (!Number.isFinite(options["listen-timeout"]) || options["listen-timeout"] <= 0) {
-            throw new Error("The --listen-timeout option must be a positive number.");
-          }
-          if (!Number.isFinite(options["shutdown-timeout"]) || options["shutdown-timeout"] <= 0) {
-            throw new Error("The --shutdown-timeout option must be a positive number.");
-          }
-          return true;
-        }),
-    )
+    .command(mainCommandModule)
     .fail((message: string | undefined, error: Error | undefined) => {
       if (error instanceof Error) {
         throw error;
