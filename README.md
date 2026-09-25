@@ -48,13 +48,13 @@ the result with [clidoc](https://clidoc.dev): `npx @clidoc/cli validate opencli.
 ## Programmatic usage
 
 ```js
-import { prewarm } from "node-prewarm";
+import { prewarm } from 'node-prewarm';
 
 await prewarm({
   command: `node "${entry}"`,
   port: 8080,
   env: {
-    NODE_COMPILE_CACHE: "/app/.node_compile_cache",
+    NODE_COMPILE_CACHE: '/app/.node_compile_cache',
   },
 });
 ```
@@ -64,7 +64,7 @@ See `vitest.config.ts` and `test/prewarm.test.ts` for a minimal Express-based in
 ## Development
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) for the issue → branch → PR workflow and
-[release setup](docs/releasing.md) for automated npm publishing.
+[RELEASING.md](RELEASING.md) for automated npm publishing.
 
 Uses `pnpm`. Pin Node with `.nvmrc` (`nvm use`).
 
@@ -75,6 +75,13 @@ pnpm run format
 pnpm run lint
 pnpm test
 ```
+
+`pnpm check` runs formatting, lint, the TypeScript build, tests with coverage,
+compiled JavaScript size, and a high-severity dependency audit. Coverage floors
+are 95% statements/lines/functions and 85% branches (`pnpm test` always enforces
+these). Size-limit allows 5 kB of compressed compiled JavaScript, excluding
+dependencies. CI reports size/coverage in its job summary and retains coverage
+artifacts. Update either threshold only with an explicit rationale in the PR.
 
 ## License
 

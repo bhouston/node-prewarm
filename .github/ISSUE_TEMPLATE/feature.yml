@@ -1,6 +1,6 @@
 name: Feature or improvement
 description: Propose a scoped change before implementation.
-title: "feat: "
+title: 'feat: '
 body:
   - type: textarea
     id: description

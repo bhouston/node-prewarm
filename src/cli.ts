@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-import process from "node:process";
-import { pathToFileURL } from "node:url";
+import process from 'node:process';
+import { pathToFileURL } from 'node:url';
 
-import { runDocgen } from "./docgen.js";
-import { parseArgv, prewarm } from "./prewarm.js";
+import { runDocgen } from './docgen.js';
+import { parseArgv, prewarm } from './prewarm.js';
 
 interface CliRuntime {
   error: typeof console.error;
@@ -32,7 +32,7 @@ export async function main(
     runDocgen,
   },
 ): Promise<void> {
-  if (argvInput[0] === "docgen") {
+  if (argvInput[0] === 'docgen') {
     await runtime.runDocgen(argvInput);
     return;
   }
@@ -49,7 +49,7 @@ export async function main(
   const { exitCode } = await runtime.prewarm({
     ...argv.options,
     command: argv.command,
-    stdio: "inherit",
+    stdio: 'inherit',
   });
   runtime.exit(exitCode);
 }
