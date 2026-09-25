@@ -24,6 +24,13 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
+      - name: Generate OpenCLI document
+        run: node dist/cli.js docgen --output opencli.json
+      - uses: bhouston/clidoc-action@v1
+        with:
+          files: opencli.json
+          specification: bcdxn
+          format: json
       - name: Verify published package includes dist
         run: |
           pnpm pack --dry-run 2>&1 | grep -qx 'dist/cli.js' || {

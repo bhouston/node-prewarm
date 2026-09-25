@@ -3,6 +3,7 @@
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
+import { runDocgen } from "./docgen.js";
 import { parseArgv, prewarm } from "./prewarm.js";
 
 interface CliRuntime {
@@ -11,6 +12,7 @@ interface CliRuntime {
   setExitCode: (code: number) => void;
   parseArgv: typeof parseArgv;
   prewarm: typeof prewarm;
+  runDocgen: typeof runDocgen;
 }
 
 function isExecutedDirectly(): boolean {
@@ -27,8 +29,14 @@ export async function main(
     },
     parseArgv,
     prewarm,
+    runDocgen,
   },
 ): Promise<void> {
+  if (argvInput[0] === "docgen") {
+    await runtime.runDocgen(argvInput);
+    return;
+  }
+
   let argv: ReturnType<typeof parseArgv>;
   try {
     argv = runtime.parseArgv(argvInput);

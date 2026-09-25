@@ -62,6 +62,44 @@ describe("cli", () => {
     expect(result.stderr).toContain("Usage: node-prewarm <command> --port <port> [options]");
   });
 
+  it("prints an OpenCLI document for the docgen subcommand", async () => {
+    const result = await cli.run(["docgen"], {
+      timeout: 5_000,
+      subprocessCleanup: "process-tree",
+    });
+
+    expect(result.exitCode).toBe(0);
+    const document = JSON.parse(result.stdout);
+    expect(document.info.binary).toBe("node-prewarm");
+    expect(document.commands["node-prewarm"]).toBeDefined();
+    expect(document.commands["node-prewarm docgen"]).toBeDefined();
+  });
+
+  it("routes docgen through the injected runtime instead of prewarm", async () => {
+    const error = vi.fn();
+    const exit = vi.fn();
+    const setExitCode = vi.fn();
+    const parseArgv = vi.fn();
+    const prewarm = vi.fn();
+    const runDocgen = vi.fn(async () => {});
+
+    await main(["docgen", "--output", "/dev/null"], {
+      error,
+      exit,
+      setExitCode,
+      parseArgv,
+      prewarm,
+      runDocgen,
+    });
+
+    expect(runDocgen).toHaveBeenCalledWith(["docgen", "--output", "/dev/null"]);
+    expect(parseArgv).not.toHaveBeenCalled();
+    expect(prewarm).not.toHaveBeenCalled();
+    expect(exit).not.toHaveBeenCalled();
+    expect(error).not.toHaveBeenCalled();
+    expect(setExitCode).not.toHaveBeenCalled();
+  });
+
   it("uses the default runtime when no overrides are supplied", async () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => {});
     const originalExitCode = process.exitCode;
@@ -91,6 +129,7 @@ describe("cli", () => {
       setExitCode,
       parseArgv,
       prewarm,
+      runDocgen: vi.fn(),
     });
 
     expect(error).toHaveBeenCalledWith("bad argv");
@@ -114,6 +153,7 @@ describe("cli", () => {
       setExitCode,
       parseArgv,
       prewarm,
+      runDocgen: vi.fn(),
     });
 
     expect(error).toHaveBeenCalledWith("bad argv");
@@ -147,6 +187,7 @@ describe("cli", () => {
       setExitCode,
       parseArgv,
       prewarm,
+      runDocgen: vi.fn(),
     });
 
     expect(prewarm).toHaveBeenCalledWith({
