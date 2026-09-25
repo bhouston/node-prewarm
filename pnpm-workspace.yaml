@@ -8,3 +8,5 @@ minimumReleaseAgeExclude:
   - '@clidoc/core'
   - '@clidoc/yargs'
   - 'vitest-command-line'
+  - '@vitest/*'
+  - 'vitest'
