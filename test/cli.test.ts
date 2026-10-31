@@ -77,7 +77,7 @@ describe('cli', () => {
 
   it('routes docgen through the injected runtime instead of prewarm', async () => {
     const error = vi.fn();
-    const exit = vi.fn();
+    const exit = vi.fn<typeof process.exit>();
     const setExitCode = vi.fn();
     const parseArgv = vi.fn();
     const prewarm = vi.fn();
@@ -116,7 +116,7 @@ describe('cli', () => {
 
   it('sets exitCode 2 when argument parsing fails', async () => {
     const error = vi.fn();
-    const exit = vi.fn();
+    const exit = vi.fn<typeof process.exit>();
     const setExitCode = vi.fn();
     const parseArgv = vi.fn(() => {
       throw new Error('bad argv');
@@ -140,7 +140,7 @@ describe('cli', () => {
 
   it('logs non-Error parse failures as-is', async () => {
     const error = vi.fn();
-    const exit = vi.fn();
+    const exit = vi.fn<typeof process.exit>();
     const setExitCode = vi.fn();
     const parseArgv = vi.fn(() => {
       throw 'bad argv';
@@ -162,7 +162,7 @@ describe('cli', () => {
 
   it('passes parsed options to prewarm and exits with its code', async () => {
     const error = vi.fn();
-    const exit = vi.fn();
+    const exit = vi.fn<typeof process.exit>();
     const setExitCode = vi.fn();
     const parseArgv = vi.fn(() => ({
       command: 'node server.js',
