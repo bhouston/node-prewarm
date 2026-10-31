@@ -48,7 +48,7 @@ for (const [name, modify, valid] of [
     false,
   ],
 ]) {
-  test(name, () => {
+  void test(name, () => {
     const dir = mkdtempSync(join(tmpdir(), 'prewarm-policy-'));
     try {
       const input = structuredClone(event);
@@ -78,7 +78,7 @@ for (const [message, expected] of [
   ['refactor: replace api\n\nBREAKING CHANGE: migrate to the new API', 'major'],
   ['ci: automate contribution workflow', null],
 ]) {
-  test(`release classification: ${message}`, async () => {
+  void test(`release classification: ${message}`, async () => {
     assert.equal(
       await analyzeCommits(analyzerOptions, {
         cwd: process.cwd(),

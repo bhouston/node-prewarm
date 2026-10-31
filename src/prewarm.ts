@@ -336,8 +336,8 @@ export async function prewarm(options: PrewarmOptions): Promise<PrewarmResult> {
   });
 
   let processExitedEarly = false;
-  let exitCode: number | null = null;
-  let exitSignal: NodeJS.Signals | null = null;
+  let exitCode = null as number | null;
+  let exitSignal = null as NodeJS.Signals | null;
 
   const exitHandler = (code: number | null, signal: NodeJS.Signals | null): void => {
     processExitedEarly = true;
