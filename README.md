@@ -20,12 +20,14 @@ npm install --save-dev node-prewarm
 ## CLI
 
 ```bash
-export NODE_COMPILE_CACHE=/app/.node_compile_cache
+export NODE_COMPILE_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/node-compile"
 
 node-prewarm "node .output/server/index.mjs" --port 8080 --ignore-crash
 ```
 
-Environment variable **`NODE_COMPILE_CACHE`** must be set. If **`PORT`** is set (e.g. in Docker `ENV`), it overrides `--port`.
+Environment variable **`NODE_COMPILE_CACHE`** must be set. On Linux and macOS we recommend
+`~/.cache/node-compile` (honoring `XDG_CACHE_HOME`); on Windows, use
+`%LOCALAPPDATA%\node-compile\Cache`. If **`PORT`** is set (e.g. in Docker `ENV`), it overrides `--port`.
 
 If you only want to measure startup time until the server listens, use `--dry-run`:
 
@@ -48,13 +50,15 @@ the result with [clidoc](https://clidoc.dev): `npx @clidoc/cli validate opencli.
 ## Programmatic usage
 
 ```js
+import { homedir } from 'node:os';
+import { join } from 'node:path';
 import { prewarm } from 'node-prewarm';
 
 await prewarm({
   command: `node "${entry}"`,
   port: 8080,
   env: {
-    NODE_COMPILE_CACHE: '/app/.node_compile_cache',
+    NODE_COMPILE_CACHE: join(homedir(), '.cache', 'node-compile'),
   },
 });
 ```
