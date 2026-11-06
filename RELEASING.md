@@ -1,64 +1,62 @@
-# Release setup
+# Releasing
 
-## npm trusted publisher
+Releases are manual and maintainer-only. Merging to `main` never publishes.
 
-For the existing `node-prewarm` package, open npm → package Settings → Trusted
-publishing and add GitHub Actions with these exact values:
+## Running a Release
 
-| Field                    | Value                   |
-| ------------------------ | ----------------------- |
-| Organization or user     | `bhouston`              |
-| Repository               | `node-prewarm`          |
-| Workflow filename        | `release.yml`           |
-| Environment              | `npm`                   |
-| Allowed action, if shown | Publish (`npm publish`) |
+```sh
+gh workflow run release.yml --ref main                  # release
+gh workflow run release.yml --ref main -f dry_run=true  # preview only, publishes nothing
+```
 
-The workflow uses GitHub-hosted runners, Node 26 (which includes npm newer than
-11.5.1), and `id-token: write`. It deliberately does not set `registry-url`,
-`NODE_AUTH_TOKEN`, or `NPM_TOKEN`. npm generates provenance automatically for trusted
-publishing. Configure this trust before the first manual `Release` dispatch on `main`.
+When there are no release-worthy commits since the last `v*` tag, the run is a no-op.
 
-References: [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/)
-and [semantic-release GitHub Actions](https://semantic-release.org/recipes/ci-configurations/github-actions/).
+## What the Workflow Does
 
-## GitHub settings
+1. Refuses any ref other than `main`.
+2. Runs the full CI workflow on the dispatched commit.
+3. Stops if `main` has moved since the dispatch.
+4. Installs, builds, and runs `pnpm release`, which is semantic-release.
+5. semantic-release computes the next version, creates the `v<version>` tag and GitHub Release, and publishes.
 
-- Keep `main` as the default and sole active integration branch.
-- Create an environment named `npm`, restricting deployments to `main`.
-- Protect `main`: require a PR and the `Quality` and `Contribution policy` checks;
-  block force pushes and deletion. The maintainer can configure reviews
-  appropriate for a solo or team repository.
-- Enable merge commits for feature PRs; disable squash merges and rebase merges.
-- The `Release` workflow only runs via manual dispatch
-  (`gh workflow run release.yml --ref main`), never on push or tag creation.
-- Optionally configure `CODECOV_TOKEN` for the existing Codecov badge. Coverage
-  thresholds and artifact uploads work independently of the reporting service.
+Releases run one at a time and never cancel a publish in progress. npm packages publish through npm trusted publishing (GitHub OIDC), so no `NPM_TOKEN` is stored.
 
-## Existing release baseline
+## Versioning
 
-npm records version `0.3.0` at commit
-`1470936307e3e545d956511ba98c0db09c0c400a`. The `v0.3.0` tag points there, so
-semantic-release starts from that version rather than treating this as a new
-package. Older non-conventional commits will not produce release entries.
+The version comes from the Conventional Commits since the last `v*` tag. The highest change wins:
 
-## Release and recovery
+- `feat` produces a minor release.
+- `fix` and `perf` produce a patch release.
+- `!` or a `BREAKING CHANGE:` footer produces a major release.
+- Other types do not trigger a release.
 
-Merge tested feature PRs into `main`; merging never publishes. When ready to
-release, run `gh workflow run release.yml --ref main`. The workflow rejects any
-other ref before running privileged steps, reruns quality checks against that
-exact commit, computes the version, updates the package manifest in its
-checkout, publishes npm, and creates the GitHub release with generated notes
-and a changelog attachment. Maintenance-only changes may produce no release;
-the run summary reports that outcome clearly instead of publishing.
+Everything this repository publishes shares one version. `package.json` versions in source are development snapshots; the Git tag and the registry hold the released version. [GitHub Releases](https://github.com/bhouston/node-prewarm/releases) is the changelog of record.
 
-Pass `dry_run: true` on the dispatch (or `gh workflow run release.yml --ref main
--f dry_run=true`) to run `pnpm release:dry-run` for verification without
-publishing. It still performs remote authentication checks, but it does not
-prove OIDC publishing works outside GitHub Actions. The first real release
-after configuring npm validates that final connection. No local publish
-command is provided.
+## One-Time Setup
 
-If a run fails before publication, fix the configuration and rerun the failed
-workflow. If npm publication succeeded but GitHub release creation failed, inspect
-the existing npm version and git tag and repair the GitHub release; do not delete
-published versions or move release tags to retry.
+1. On npmjs.com, open each package's Trusted Publisher settings, choose GitHub Actions, and enter organization or user `bhouston`, repository `node-prewarm`, workflow filename `release.yml`, and environment name `npm`.
+2. Protect `main`: require pull requests and the CI checks, allow merge commits, and block force pushes and deletion.
+3. If the repository uploads coverage to Codecov, add the `CODECOV_TOKEN` repository secret.
+
+## Recovery
+
+Publishing is not atomic. If a run fails part way, compare the registry versions, the `v<version>` tag, and the workflow log, then finish what is missing from the same release commit. If publishing succeeded but the GitHub Release failed, create the release from the existing tag. Never republish a version, delete a published version, or move a release tag. Resolve the failure before dispatching another release.
+
+## Repository Specifics
+
+### Published Artifacts
+
+- npm package `node-prewarm`.
+
+### Thresholds
+
+CI enforces a 5 kB gzip size budget (`pnpm size`) for the compiled CLI and library, excluding dependencies. Explain any change in the PR.
+
+### Local Validation
+
+```sh
+pnpm check          # format, lint, build, test, size budget, workflow tests, audit
+pnpm release:dry-run
+```
+
+A dry run does not prove OIDC publishing works outside GitHub Actions; the first real release after npm setup validates that connection.
