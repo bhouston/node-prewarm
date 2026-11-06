@@ -79,8 +79,7 @@ See `vitest.config.ts` and `test/prewarm.test.ts` for a minimal Express-based in
 
 ## Development
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) for the issue → branch → PR workflow and
-[RELEASING.md](RELEASING.md) for automated npm publishing.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) for the issue → branch → PR workflow.
 
 Uses `pnpm`. Pin Node with `.nvmrc` (`nvm use`).
 
@@ -98,6 +97,10 @@ are 95% statements/lines/functions and 85% branches (`pnpm test` always enforces
 these). Size-limit allows 5 kB of compressed compiled JavaScript, excluding
 dependencies. CI reports size/coverage in its job summary and retains coverage
 artifacts. Update either threshold only with an explicit rationale in the PR.
+
+## Releases
+
+See [RELEASING.md](RELEASING.md) for how releases are published and [GitHub Releases](https://github.com/bhouston/node-prewarm/releases) for changes.
 
 ## Contribution
 
