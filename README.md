@@ -1,11 +1,23 @@
+<p align="center">
+  <a href="https://npmjs.com/package/node-prewarm"><img src="https://img.shields.io/npm/v/node-prewarm.svg" alt="npm package"></a>
+  <a href="https://www.npmtrends.com/node-prewarm"><img src="https://img.shields.io/npm/dw/node-prewarm.svg" alt="npm downloads"></a>
+  <a href="https://codecov.io/gh/bhouston/node-prewarm"><img src="https://codecov.io/gh/bhouston/node-prewarm/branch/main/graph/badge.svg" alt="coverage"></a>
+  <a href="https://discord.gg/fwupDN493R"><img src="https://img.shields.io/badge/chat-discord-blue?style=flat&logo=discord" alt="discord chat"></a>
+</p>
+<br/>
+
 # node-prewarm
 
-[![NPM Package][npm]][npm-url]
-[![NPM Downloads][npm-downloads]][npmtrends-url]
-[![Tests][tests-badge]][tests-url]
-[![Coverage][coverage-badge]][coverage-url]
+> Warm Node's module compile cache during your Docker build.
 
-Start a Node process (typically your HTTP server entrypoint), wait until a TCP port accepts connections, then send **SIGTERM** so the process exits gracefully. Intended for Docker builds alongside [`NODE_COMPILE_CACHE`](https://nodejs.org/api/environment_variables.html) (Node.js 25+) to preload the stable module compile cache before deployment.
+- 🔥 Pre-Warms Node Compile Cache
+- 🐳 Built for Docker Builds
+- 🔌 Waits for a TCP Port
+- 🛑 Graceful SIGTERM Shutdown
+- ⏱️ Dry-Run Startup Timing
+- 📄 OpenCLI Docs Generation
+
+Starts a Node process (typically your HTTP server entrypoint), waits until a TCP port accepts connections, then sends **SIGTERM** so the process exits gracefully. Intended for Docker builds alongside [`NODE_COMPILE_CACHE`](https://nodejs.org/api/environment_variables.html) (Node.js 25+) to preload the stable module compile cache before deployment.
 
 Requires **Node.js 25 or later**.
 
@@ -67,8 +79,7 @@ See `vitest.config.ts` and `test/prewarm.test.ts` for a minimal Express-based in
 
 ## Development
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) for the issue → branch → PR workflow and
-[RELEASING.md](RELEASING.md) for automated npm publishing.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) for the issue → branch → PR workflow.
 
 Uses `pnpm`. Pin Node with `.nvmrc` (`nvm use`).
 
@@ -87,15 +98,18 @@ these). Size-limit allows 5 kB of compressed compiled JavaScript, excluding
 dependencies. CI reports size/coverage in its job summary and retains coverage
 artifacts. Update either threshold only with an explicit rationale in the PR.
 
+## Releases
+
+See [RELEASING.md](RELEASING.md) for how releases are published and [GitHub Releases](https://github.com/bhouston/node-prewarm/releases) for changes.
+
+## Contribution
+
+See [Contributing Guide](CONTRIBUTING.md).
+
 ## License
 
 MIT
 
-[npm]: https://img.shields.io/npm/v/node-prewarm
-[npm-url]: https://www.npmjs.com/package/node-prewarm
-[npm-downloads]: https://img.shields.io/npm/dw/node-prewarm
-[npmtrends-url]: https://www.npmtrends.com/node-prewarm
-[tests-badge]: https://github.com/bhouston/node-prewarm/actions/workflows/ci.yml/badge.svg
-[tests-url]: https://github.com/bhouston/node-prewarm/actions/workflows/ci.yml
-[coverage-badge]: https://codecov.io/gh/bhouston/node-prewarm/branch/main/graph/badge.svg
-[coverage-url]: https://codecov.io/gh/bhouston/node-prewarm
+## Author
+
+[Ben Houston](https://ben3d.ca), Sponsored by [Land of Assets](https://landofassets.com).
