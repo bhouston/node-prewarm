@@ -5,3 +5,8 @@ pnpm-debug.log*
 .DS_Store
 coverage
 .tmp
+
+# Agent tooling
+.claude/
+.codex/
+.cursor/
